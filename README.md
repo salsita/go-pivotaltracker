@@ -12,7 +12,7 @@ import "gopkg.in/salsita/go-pivotaltracker/v0/v5/pivotal"
 
 ## Documentation ##
 
-The generated documentation at [GoDoc](http://godoc.org/github.com/salsita/go-pivotaltracker/).
+The generated documentation at [GoDoc](http://godoc.org/github.com/salsita/go-pivotaltracker/v5/pivotal).
 
 ## License ##
 
