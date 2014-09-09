@@ -43,48 +43,48 @@ const (
 )
 
 type Story struct {
-	Id            int       `json:"id,omitempty"`
-	ProjectId     int       `json:"project_id,omitempty"`
-	Name          string    `json:"name,omitempty"`
-	Description   string    `json:"description,omitempty"`
-	Type          string    `json:"story_type,omitempty"`
-	State         string    `json:"current_state,omitempty"`
-	Estimate      float64   `json:"estimate,omitempty"`
-	AcceptedAt    time.Time `json:"accepted_at,omitempty"`
-	Deadline      time.Time `json:"deadline,omitempty"`
-	RequestedById int       `json:"requested_by_id,omitempty"`
-	OwnerIds      []int     `json:"owner_ids,omitempty"`
-	LabelIds      []int     `json:"label_ids,omitempty"`
-	Labels        []*Label  `json:"labels,omitempty"`
-	TaskIds       []int     `json:"task_ids,omitempty"`
-	Tasks         []int     `json:"tasks,omitempty"`
-	FollowerIds   []int     `json:"follower_ids,omitempty"`
-	CommentIds    []int     `json:"comment_ids,omitempty"`
-	CreatedAt     time.Time `json:"created_at,omitempty"`
-	UpdatedAt     time.Time `json:"updated_at,omitempty"`
-	IntegrationId int       `json:"integration_id,omitempty"`
-	ExternalId    string    `json:"external_id,omitempty"`
-	URL           string    `json:"url,omitempty"`
-	Kind          string    `json:"kind"`
+	Id            int        `json:"id,omitempty"`
+	ProjectId     int        `json:"project_id,omitempty"`
+	Name          string     `json:"name,omitempty"`
+	Description   string     `json:"description,omitempty"`
+	Type          string     `json:"story_type,omitempty"`
+	State         string     `json:"current_state,omitempty"`
+	Estimate      float64    `json:"estimate,omitempty"`
+	AcceptedAt    *time.Time `json:"accepted_at,omitempty"`
+	Deadline      *time.Time `json:"deadline,omitempty"`
+	RequestedById int        `json:"requested_by_id,omitempty"`
+	OwnerIds      []int      `json:"owner_ids,omitempty"`
+	LabelIds      []int      `json:"label_ids,omitempty"`
+	Labels        []*Label   `json:"labels,omitempty"`
+	TaskIds       []int      `json:"task_ids,omitempty"`
+	Tasks         []int      `json:"tasks,omitempty"`
+	FollowerIds   []int      `json:"follower_ids,omitempty"`
+	CommentIds    []int      `json:"comment_ids,omitempty"`
+	CreatedAt     *time.Time `json:"created_at,omitempty"`
+	UpdatedAt     *time.Time `json:"updated_at,omitempty"`
+	IntegrationId int        `json:"integration_id,omitempty"`
+	ExternalId    string     `json:"external_id,omitempty"`
+	URL           string     `json:"url,omitempty"`
+	Kind          string     `json:"kind,omitempty"`
 }
 
 type Label struct {
-	Id        int       `json:"id,omitempty"`
-	ProjectId int       `json:"project_id,omitempty"`
-	Name      string    `json:"name,omitempty"`
-	CreatedAt time.Time `json:"created_at,omitempty"`
-	UpdatedAt time.Time `json:"updated_at,omitempty"`
-	Kind      string    `json:"kind,omitempty"`
+	Id        int        `json:"id,omitempty"`
+	ProjectId int        `json:"project_id,omitempty"`
+	Name      string     `json:"name,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+	Kind      string     `json:"kind,omitempty"`
 }
 
 type Task struct {
-	Id          int       `json:"id,omitempty"`
-	StoryId     int       `json:"story_id,omitempty"`
-	Description string    `json:"description,omitempty"`
-	Position    int       `json:"position,omitempty"`
-	Complete    bool      `json:"complete,omitempty"`
-	CreatedAt   time.Time `json:"created_at,omitempty"`
-	UpdatedAt   time.Time `json:"updated_at,omitempty"`
+	Id          int        `json:"id,omitempty"`
+	StoryId     int        `json:"story_id,omitempty"`
+	Description string     `json:"description,omitempty"`
+	Position    int        `json:"position,omitempty"`
+	Complete    bool       `json:"complete,omitempty"`
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
+	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
 }
 
 type StoryService struct {
