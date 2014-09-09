@@ -115,6 +115,23 @@ func (service *StoryService) List(projectId int, filter string) ([]*Story, *http
 	return stories, resp, err
 }
 
+func (service *StoryService) Update(projectId, storyId int, story *Story) (*Story, *http.Response, error) {
+	u := fmt.Sprintf("projects/%v/stories/%v", projectId, storyId)
+	req, err := service.client.NewRequest("PUT", u, story)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var bodyStory Story
+	resp, err := service.client.Do(req, &bodyStory)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &bodyStory, resp, err
+
+}
+
 func (service *StoryService) ListTasks(projectId, storyId int) ([]*Task, *http.Response, error) {
 	u := fmt.Sprintf("projects/%v/stories/%v/tasks", projectId, storyId)
 	req, err := service.client.NewRequest("GET", u, nil)
