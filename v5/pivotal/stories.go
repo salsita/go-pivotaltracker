@@ -115,6 +115,22 @@ func (service *StoryService) List(projectId int, filter string) ([]*Story, *http
 	return stories, resp, err
 }
 
+func (service *StoryService) Get(projectId, storyId int) (*Story, *http.Response, error) {
+	u := fmt.Sprintf("projects/%v/stories/%v", projectId, storyId)
+	req, err := service.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var story Story
+	resp, err := service.client.Do(req, &story)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &story, resp, err
+}
+
 func (service *StoryService) Update(projectId, storyId int, story *Story) (*Story, *http.Response, error) {
 	u := fmt.Sprintf("projects/%v/stories/%v", projectId, storyId)
 	req, err := service.client.NewRequest("PUT", u, story)
