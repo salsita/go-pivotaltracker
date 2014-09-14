@@ -47,6 +47,9 @@ type Client struct {
 	// User-Agent header to use when connecting to the Pivotal Tracker API.
 	userAgent string
 
+	// Me service
+	Me *MeService
+
 	// Story service
 	Stories *StoryService
 }
@@ -59,6 +62,7 @@ func NewClient(apiToken string) *Client {
 		baseURL:   baseURL,
 		userAgent: defaultUserAgent,
 	}
+	client.Me = newMeService(client)
 	client.Stories = newStoryService(client)
 	return client
 }
