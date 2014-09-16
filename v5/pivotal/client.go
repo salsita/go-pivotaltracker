@@ -120,7 +120,15 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode > 299 {
-		return resp, &ErrHTTP{resp}
+		var errObject Error
+		if err := json.NewDecoder(resp.Body).Decode(&errObject); err != nil {
+			return resp, &ErrAPI{Response: resp}
+		}
+
+		return resp, &ErrAPI{
+			Response: resp,
+			Err:      &errObject,
+		}
 	}
 
 	if v != nil {
