@@ -48,7 +48,7 @@ func (err *ErrAPI) Error() string {
 		req.Method,
 		req.URL,
 		err.Response.Status,
-		err.Error)
+		err.Err)
 }
 
 // ErrFieldNotSet --------------------------------------------------------------
