@@ -7,7 +7,7 @@ Pivotal Tracker API client for Go (Golang)
 The API is rather incomplete, so it's tagged with `v0`:
 
 ```go
-import "gopkg.in/salsita/go-pivotaltracker/v0/v5/pivotal"
+import "gopkg.in/salsita/go-pivotaltracker.v0/v5/pivotal"
 ```
 
 ## Documentation ##
