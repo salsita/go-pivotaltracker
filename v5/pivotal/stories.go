@@ -177,3 +177,19 @@ func (service *StoryService) AddTask(projectId, storyId int, task *Task) (*http.
 
 	return service.client.Do(req, nil)
 }
+
+func (service *StoryService) Owners(projectId, storyId int) ([]*Person, *http.Response, error) {
+	u := fmt.Sprintf("projects/%d/stories/%d/owners", projectId, storyId)
+	req, err := service.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var owners []*Person
+	resp, err := service.client.Do(req, &owners)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return owners, resp, err
+}
