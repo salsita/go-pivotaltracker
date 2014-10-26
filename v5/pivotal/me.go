@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-type Me struct {
+type Person struct {
 	Id                         int        `json:"id"`
 	Name                       string     `json:"name"`
 	Initials                   string     `json:"initials"`
@@ -46,13 +46,13 @@ func newMeService(client *Client) *MeService {
 	return &MeService{client}
 }
 
-func (service *MeService) Get() (*Me, *http.Response, error) {
+func (service *MeService) Get() (*Person, *http.Response, error) {
 	req, err := service.client.NewRequest("GET", "me", nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var me Me
+	var me Person
 	resp, err := service.client.Do(req, &me)
 	if err != nil {
 		return nil, resp, err
