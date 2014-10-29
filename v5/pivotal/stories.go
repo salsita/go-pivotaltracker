@@ -87,6 +87,16 @@ type Task struct {
 	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
 }
 
+type Person struct {
+	Id                         int        `json:"id"`
+	Name                       string     `json:"name"`
+	Initials                   string     `json:"initials"`
+	Username                   string     `json:"username"`
+	TimeZone                   *TimeZone  `json:"time_zone"`
+	Email                      string     `json:"email"`
+	Kind					   string     `json:"kind"`
+}
+
 type StoryService struct {
 	client *Client
 }

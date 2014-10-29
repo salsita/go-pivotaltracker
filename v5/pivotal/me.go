@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-type Person struct {
+type Me struct {
 	Id                         int        `json:"id"`
 	Name                       string     `json:"name"`
 	Initials                   string     `json:"initials"`
@@ -37,8 +37,6 @@ type Person struct {
 	CreatedAt                  *time.Time `json:"created_at"`
 	UpdatedAt                  *time.Time `json:"updated_at"`
 }
-
-type Me Person
 
 type MeService struct {
 	client *Client
