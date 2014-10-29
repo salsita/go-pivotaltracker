@@ -188,7 +188,7 @@ func (service *StoryService) AddTask(projectId, storyId int, task *Task) (*http.
 	return service.client.Do(req, nil)
 }
 
-func (service *StoryService) Owners(projectId, storyId int) ([]*Person, *http.Response, error) {
+func (service *StoryService) ListOwners(projectId, storyId int) ([]*Person, *http.Response, error) {
 	u := fmt.Sprintf("projects/%d/stories/%d/owners", projectId, storyId)
 	req, err := service.client.NewRequest("GET", u, nil)
 	if err != nil {
