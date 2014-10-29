@@ -46,13 +46,13 @@ func newMeService(client *Client) *MeService {
 	return &MeService{client}
 }
 
-func (service *MeService) Get() (*Person, *http.Response, error) {
+func (service *MeService) Get() (*Me, *http.Response, error) {
 	req, err := service.client.NewRequest("GET", "me", nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	var me Person
+	var me Me
 	resp, err := service.client.Do(req, &me)
 	if err != nil {
 		return nil, resp, err
