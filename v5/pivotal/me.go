@@ -38,6 +38,8 @@ type Person struct {
 	UpdatedAt                  *time.Time `json:"updated_at"`
 }
 
+type Me Person
+
 type MeService struct {
 	client *Client
 }
