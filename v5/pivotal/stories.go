@@ -87,6 +87,16 @@ type Task struct {
 	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
 }
 
+type Person struct {
+	Id                         int        `json:"id,omitempty"`
+	Name                       string     `json:"name,omitempty"`
+	Initials                   string     `json:"initials,omitempty"`
+	Username                   string     `json:"username,omitempty"`
+	TimeZone                   *TimeZone  `json:"time_zone,omitempty"`
+	Email                      string     `json:"email,omitempty"`
+	Kind                       string     `json:"kind,omitempty"`
+}
+
 type StoryService struct {
 	client *Client
 }
@@ -176,4 +186,20 @@ func (service *StoryService) AddTask(projectId, storyId int, task *Task) (*http.
 	}
 
 	return service.client.Do(req, nil)
+}
+
+func (service *StoryService) ListOwners(projectId, storyId int) ([]*Person, *http.Response, error) {
+	u := fmt.Sprintf("projects/%d/stories/%d/owners", projectId, storyId)
+	req, err := service.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var owners []*Person
+	resp, err := service.client.Do(req, &owners)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return owners, resp, err
 }
