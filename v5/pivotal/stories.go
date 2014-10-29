@@ -88,13 +88,13 @@ type Task struct {
 }
 
 type Person struct {
-	Id                         int        `json:"id"`
-	Name                       string     `json:"name"`
-	Initials                   string     `json:"initials"`
-	Username                   string     `json:"username"`
-	TimeZone                   *TimeZone  `json:"time_zone"`
-	Email                      string     `json:"email"`
-	Kind					   string     `json:"kind"`
+	Id                         int        `json:"id,omitempty"`
+	Name                       string     `json:"name,omitempty"`
+	Initials                   string     `json:"initials,omitempty"`
+	Username                   string     `json:"username,omitempty"`
+	TimeZone                   *TimeZone  `json:"time_zone,omitempty"`
+	Email                      string     `json:"email,omitempty"`
+	Kind                       string     `json:"kind,omitempty"`
 }
 
 type StoryService struct {
