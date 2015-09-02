@@ -4,10 +4,10 @@ Pivotal Tracker API client for Go (Golang)
 
 ## Usage ##
 
-The API is rather incomplete, so we are not really using `gopkg.in` yet.
+The API is rather incomplete, but we do use `gopkg.in`:
 
 ```go
-import "github.com/salsita/go-pivotaltracker/v5/pivotal"
+import "gopkg.in/salsita/go-pivotaltracker.v1/v5/pivotal"
 ```
 
 ## Documentation ##
