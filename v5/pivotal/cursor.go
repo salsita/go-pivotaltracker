@@ -84,11 +84,11 @@ func (c *cursor) next(v interface{}) (resp *http.Response, err error) {
 	return resp, nil
 }
 
-func (c *cursor) all(v interface{}) (resp *http.Response, err error) {
+func (c *cursor) all(v interface{}) error {
 	// Get the total number of items.
 	total, err := c.total()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	// Get the request object.
@@ -97,14 +97,15 @@ func (c *cursor) all(v interface{}) (resp *http.Response, err error) {
 	// Set limit=total, offset=0 to get all data at once.
 	values, err := url.ParseQuery(req.URL.RawQuery)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	values.Set("limit", strconv.Itoa(total))
 	values.Set("offset", "0")
 	req.URL.RawQuery = values.Encode()
 
 	// Do the request, decode JSON to v.
-	return c.client.Do(req, v)
+	_, err = c.client.Do(req, v)
+	return err
 }
 
 func (c *cursor) total() (int, error) {

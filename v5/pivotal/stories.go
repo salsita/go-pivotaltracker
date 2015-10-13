@@ -140,7 +140,7 @@ func (service *StoryService) List(projectId int, filter string) ([]*Story, error
 	}
 
 	var stories []*Story
-	if _, err := cursor.all(&stories); err != nil {
+	if err := cursor.all(&stories); err != nil {
 		return nil, err
 	}
 	return stories, nil
