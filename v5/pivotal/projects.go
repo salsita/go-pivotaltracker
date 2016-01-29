@@ -116,3 +116,23 @@ func (service *ProjectService) Get(projectId int) (*Project, *http.Response, err
 
 	return &project, resp, err
 }
+
+func (service *ProjectService) AddStory(
+	projectId int,
+	story *Story,
+) (*Story, *http.Response, error) {
+
+	u := fmt.Sprintf("projects/%v/stories", projectId)
+	req, err := service.client.NewRequest("POST", u, story)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var newStory Story
+	resp, err := service.client.Do(req, &newStory)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &newStory, resp, err
+}
