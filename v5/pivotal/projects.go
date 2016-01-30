@@ -136,3 +136,19 @@ func (service *ProjectService) AddStory(
 
 	return &newStory, resp, err
 }
+
+func (service *ProjectService) ListLabels(projectId int) ([]*Label, *http.Response, error) {
+	u := fmt.Sprintf("projects/%d/labels", projectId)
+	req, err := service.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var labels []*Label
+	resp, err := service.client.Do(req, &labels)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return labels, resp, err
+}
