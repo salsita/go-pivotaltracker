@@ -293,8 +293,12 @@ func (service *StoryService) AddComment(
 }
 
 // ListComments returns the list of Comments in a Story.
-func (service *StoryService) ListComments(projectID, storyID int) ([]*Comment, *http.Response, error) {
-	u := fmt.Sprintf("projects/%v/stories/%v/comments", projectID, storyID)
+func (service *StoryService) ListComments(
+	projectId int,
+	storyId int,
+) ([]*Comment, *http.Response, error) {
+
+	u := fmt.Sprintf("projects/%v/stories/%v/comments", projectId, storyId)
 	req, err := service.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err
