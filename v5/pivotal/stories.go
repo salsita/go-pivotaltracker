@@ -192,6 +192,31 @@ func (service *StoryService) Iterate(projectId int, filter string) (c *StoryCurs
 	return &StoryCursor{cursor, make([]*Story, 0)}, nil
 }
 
+func (service *StoryService) Create(projectId int, story *StoryRequest) (*Story, *http.Response, error) {
+	if projectId == 0 {
+		return nil, nil, &ErrFieldNotSet{"project_id"}
+	}
+
+	if story.Name == "" {
+		return nil, nil, &ErrFieldNotSet{"name"}
+	}
+
+	u := fmt.Sprintf("projects/%v/stories", projectId)
+	req, err := service.client.NewRequest("POST", u, story)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var newStory Story
+
+	resp, err := service.client.Do(req, &newStory)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &newStory, resp, nil
+}
+
 func (service *StoryService) Get(projectId, storyId int) (*Story, *http.Response, error) {
 	u := fmt.Sprintf("projects/%v/stories/%v", projectId, storyId)
 	req, err := service.client.NewRequest("GET", u, nil)
