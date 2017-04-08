@@ -42,6 +42,9 @@ type Client struct {
 
 	// Story service
 	Stories *StoryService
+
+	// AccountMembership service
+	AccountMemberships *AccountMembershipService
 }
 
 func NewClient(apiToken string) *Client {
@@ -74,6 +77,10 @@ func (c *Client) SetBaseURL(baseURL string) error {
 
 func (c *Client) SetUserAgent(agent string) {
 	c.userAgent = agent
+}
+
+func (c *Client) SetAccountId(accountId int) {
+	c.AccountMemberships = newAccountMembershipService(c, accountId)
 }
 
 func (c *Client) NewRequest(method, urlPath string, body interface{}) (*http.Request, error) {
