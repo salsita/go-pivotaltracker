@@ -45,5 +45,5 @@ type ErrFieldNotSet struct {
 }
 
 func (err *ErrFieldNotSet) Error() string {
-	return fmt.Sprintf("Required field '%s' is not set")
+	return fmt.Sprintf("Required field '%s' is not set", err.fieldName)
 }
