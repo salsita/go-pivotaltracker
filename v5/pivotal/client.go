@@ -45,6 +45,9 @@ type Client struct {
 
 	// Membership service
 	Memberships *MembershipService
+
+	// Iteration service
+	Iterations *IterationService
 }
 
 func NewClient(apiToken string) *Client {
@@ -59,6 +62,7 @@ func NewClient(apiToken string) *Client {
 	client.Projects = newProjectService(client)
 	client.Stories = newStoryService(client)
 	client.Memberships = newMembershipService(client)
+	client.Iterations = newIterationService(client)
 	return client
 }
 
