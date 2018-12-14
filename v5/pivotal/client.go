@@ -48,6 +48,12 @@ type Client struct {
 
 	// Iteration service
 	Iterations *IterationService
+
+	// Activity Service
+	Activity *ActivityService
+
+	// Epic Service
+	Epic *EpicService
 }
 
 func NewClient(apiToken string) *Client {
@@ -63,6 +69,8 @@ func NewClient(apiToken string) *Client {
 	client.Stories = newStoryService(client)
 	client.Memberships = newMembershipService(client)
 	client.Iterations = newIterationService(client)
+	client.Activity = newActivitiesService(client)
+	client.Epic = newEpicService(client)
 	return client
 }
 

@@ -54,6 +54,8 @@ type Story struct {
 	CommentIds    []int      `json:"comment_ids,omitempty"`
 	CreatedAt     *time.Time `json:"created_at,omitempty"`
 	UpdatedAt     *time.Time `json:"updated_at,omitempty"`
+	BeforeId      int        `json:"before_id,omitempty"`
+	AfterId       int        `json:"after_id,omitempty"`
 	IntegrationId int        `json:"integration_id,omitempty"`
 	ExternalId    string     `json:"external_id,omitempty"`
 	URL           string     `json:"url,omitempty"`
