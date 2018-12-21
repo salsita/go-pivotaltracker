@@ -1,9 +1,8 @@
-/*
+// Copyright (c) 2015-2018 Salsita Software
+// Copyright (c) 2015 Scott Devoid
+// Use of this source code is governed by the MIT License.
+// The license can be found in the LICENSE file.
 
-   Copyright (C) 2015 Scott Devoid
-   Copyright (C) 2015 Salsita Software
-
-*/
 package pivotal
 
 import (

@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Salsita Software
+// Copyright (c) 2014-2018 Salsita Software
 // Use of this source code is governed by the MIT License.
 // The license can be found in the LICENSE file.
 
@@ -9,8 +9,7 @@ import (
 	"net/http"
 )
 
-// ErrAPI ----------------------------------------------------------------------
-
+// Error is the Pivotal Tracker error response API struct
 type Error struct {
 	Code             string `json:"code"`
 	Error            string `json:"error"`
@@ -23,11 +22,13 @@ type Error struct {
 	} `json:"validation_errors"`
 }
 
+// ErrAPI wraps errors from API responses.
 type ErrAPI struct {
 	Response *http.Response
 	Err      *Error
 }
 
+// Error implements the Error interface for the ErrAPI struct.
 func (err *ErrAPI) Error() string {
 	req := err.Response.Request
 	return fmt.Sprintf(
@@ -38,12 +39,12 @@ func (err *ErrAPI) Error() string {
 		err.Err)
 }
 
-// ErrFieldNotSet --------------------------------------------------------------
-
+// ErrFieldNotSet wraps errors in missing fields that are required.
 type ErrFieldNotSet struct {
 	fieldName string
 }
 
+// Error implements the Error interface for the ErrFieldNotSet struct.
 func (err *ErrFieldNotSet) Error() string {
 	return fmt.Sprintf("Required field '%s' is not set", err.fieldName)
 }

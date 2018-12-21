@@ -1,3 +1,7 @@
+// Copyright (c) 2014-2018 Salsita Software
+// Use of this source code is governed by the MIT License.
+// The license can be found in the LICENSE file.
+
 package pivotal
 
 import (
@@ -12,7 +16,7 @@ import (
 // Change is the base child structure of an Acitivty
 type Change struct {
 	Kind           string      `json:"kind,omitempty"`
-	Id             int         `json:"id,omitempty"`
+	ID             int         `json:"id,omitempty"`
 	Name           string      `json:"name,omitempty"`
 	ChangeType     string      `json:"change_type,omitempty"`
 	StoryType      string      `json:"story_type,omitempty"`
@@ -24,7 +28,7 @@ type Change struct {
 // Activity is the default response to the activity endpoint
 type Activity struct {
 	Kind               string        `json:"kind,omitempty"`
-	Guid               string        `json:"guid,omitempty"`
+	GUID               string        `json:"guid,omitempty"`
 	ProjectVersion     int           `json:"project_version,omitempty"`
 	Message            string        `json:"message,omitempty"`
 	Highlight          string        `json:"highlight,omitempty"`
@@ -52,11 +56,11 @@ func newActivitiesService(client *Client) *ActivityService {
 // for this is that the filter might require to fetch all the activities at once
 // to get the right results. The response is default sorted in DESCENDING order so
 // leverage the sortOrder variable to control sort order.
-func (service *ActivityService) List(projectId int, sortOrder *string, limit *int, offset *int, occurredBefore *time.Time, occurredAfter *time.Time, sinceVersion *int) ([]*Activity, error) {
+func (service *ActivityService) List(projectID int, sortOrder *string, limit *int, offset *int, occurredBefore *time.Time, occurredAfter *time.Time, sinceVersion *int) ([]*Activity, error) {
 	if err := validateSortOrder(sortOrder); err != nil {
 		return nil, err
 	}
-	reqFunc := newActivitiesRequestFunc(service.client, projectId, sortOrder, limit, offset, occurredBefore, occurredAfter, sinceVersion)
+	reqFunc := newActivitiesRequestFunc(service.client, projectID, sortOrder, limit, offset, occurredBefore, occurredAfter, sinceVersion)
 	cursor, err := newCursor(service.client, reqFunc, 0)
 	if err != nil {
 		return nil, err
@@ -71,9 +75,9 @@ func (service *ActivityService) List(projectId int, sortOrder *string, limit *in
 
 // newActivitiesRequestFunc takes in pointers to a bunch of types, there reason for this is so we can pass in nil values and create a query string accordingly
 // this could be wrapped a different way to accomplish a similar goal but the nil value is the desired behavior
-func newActivitiesRequestFunc(client *Client, projectId int, sortOrder *string, limit *int, offset *int, occurredBefore *time.Time, occurredAfter *time.Time, sinceVersion *int) func() *http.Request {
+func newActivitiesRequestFunc(client *Client, projectID int, sortOrder *string, limit *int, offset *int, occurredBefore *time.Time, occurredAfter *time.Time, sinceVersion *int) func() *http.Request {
 	return func() *http.Request {
-		activityPath := fmt.Sprintf("projects/%v/activity", projectId)
+		activityPath := fmt.Sprintf("projects/%v/activity", projectID)
 		queryParams := url.Values{}
 		if sortOrder != nil {
 			queryParams.Add("sort_order", *sortOrder)
@@ -102,15 +106,15 @@ func newActivitiesRequestFunc(client *Client, projectId int, sortOrder *string, 
 	}
 }
 
-// ActivityCursor is...
+// ActivityCursor is a localized wrapper around the client cursor implementation for iterator patterns.
 type ActivityCursor struct {
 	*cursor
 	buff []*Activity
 }
 
-// Next returns the next story.
+// Next returns the next activity.
 //
-// In case there are no more stories, io.EOF is returned as an error.
+// In case there are no more activities, io.EOF is returned as an error.
 func (c *ActivityCursor) Next() (s *Activity, err error) {
 	if len(c.buff) == 0 {
 		_, err = c.next(&c.buff)
@@ -129,11 +133,11 @@ func (c *ActivityCursor) Next() (s *Activity, err error) {
 
 // Iterate returns a cursor that can be used to iterate over the activities specified
 // by the filter. More stories are fetched on demand as needed.
-func (service *ActivityService) Iterate(projectId int, sortOrder *string, occurredBefore *time.Time, occurredAfter *time.Time, sinceVersion *int) (c *ActivityCursor, err error) {
+func (service *ActivityService) Iterate(projectID int, sortOrder *string, occurredBefore *time.Time, occurredAfter *time.Time, sinceVersion *int) (c *ActivityCursor, err error) {
 	if err = validateSortOrder(sortOrder); err != nil {
 		return nil, err
 	}
-	reqFunc := newActivitiesRequestFunc(service.client, projectId, sortOrder, nil, nil, occurredBefore, occurredAfter, sinceVersion)
+	reqFunc := newActivitiesRequestFunc(service.client, projectID, sortOrder, nil, nil, occurredBefore, occurredAfter, sinceVersion)
 	cursor, err := newCursor(service.client, reqFunc, PageLimit)
 	if err != nil {
 		return nil, err
