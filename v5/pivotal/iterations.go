@@ -1,7 +1,8 @@
-// Copyright (c) 2014 Salsita Software
-// Copyright (C) 2015 Scott Devoid
+// Copyright (c) 2014-2018 Salsita Software
+// Copyright (c) 2015 Scott Devoid
 // Use of this source code is governed by the MIT License.
 // The license can be found in the LICENSE file.
+
 package pivotal
 
 import (
@@ -10,12 +11,13 @@ import (
 	"time"
 )
 
+// Iteration is the primary data object for the IterationService.
 type Iteration struct {
 	Number          int        `json:"number,omitempty"`
-	ProjectId       int        `json:"project_id,omitempty"`
+	ProjectID       int        `json:"project_id,omitempty"`
 	Length          int        `json:"length,omitempty"`
 	TeamStrength    float64    `json:"team_strength,omitempty"`
-	StoryIds        []int      `json:"story_ids,omitempty"`
+	StoryIDs        []int      `json:"story_ids,omitempty"`
 	Stories         []*Story   `json:"stories,omitempty"`
 	Start           *time.Time `json:"start,omitempty"`
 	Finish          *time.Time `json:"finish,omitempty"`
@@ -26,6 +28,7 @@ type Iteration struct {
 	Kind            string     `json:"kind,omitempty"`
 }
 
+// IterationService wraps the client context to implement Iteration logic.
 type IterationService struct {
 	client *Client
 }
@@ -34,9 +37,9 @@ func newIterationService(client *Client) *IterationService {
 	return &IterationService{client}
 }
 
-// Return an iteration from the project.
-func (service *IterationService) Get(projectId int, iterationNumber int) (*Iteration, *http.Response, error) {
-	u := fmt.Sprintf("projects/%v/iterations/%v", projectId, iterationNumber)
+// Get return an iteration from the project.
+func (service *IterationService) Get(projectID int, iterationNumber int) (*Iteration, *http.Response, error) {
+	u := fmt.Sprintf("projects/%v/iterations/%v", projectID, iterationNumber)
 	req, err := service.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err

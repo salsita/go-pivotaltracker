@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Salsita Software
+// Copyright (c) 2014-2018 Salsita Software
 // Copyright (C) 2015 Scott Devoid
 // Use of this source code is governed by the MIT License.
 // The license can be found in the LICENSE file.
@@ -13,30 +13,44 @@ import (
 	"time"
 )
 
-// Number of items to fetch at once when getting paginated response.
+// PageLimit is the number of items to fetch at once when getting paginated response.
 const PageLimit = 10
 
 const (
+	// StoryTypeFeature wraps the string enum in the variable name.
 	StoryTypeFeature = "feature"
-	StoryTypeBug     = "bug"
-	StoryTypeChore   = "chore"
+	// StoryTypeBug wraps the string enum in the variable name.
+	StoryTypeBug = "bug"
+	// StoryTypeChore wraps the string enum in the variable name.
+	StoryTypeChore = "chore"
+	// StoryTypeRelease wraps the string enum in the variable name.
 	StoryTypeRelease = "release"
 )
 
 const (
+	// StoryStateUnscheduled wraps the story state enum in the variable name.
 	StoryStateUnscheduled = "unscheduled"
-	StoryStatePlanned     = "planned"
-	StoryStateUnstarted   = "unstarted"
-	StoryStateStarted     = "started"
-	StoryStateFinished    = "finished"
-	StoryStateDelivered   = "delivered"
-	StoryStateAccepted    = "accepted"
-	StoryStateRejected    = "rejected"
+	// StoryStatePlanned wraps the story state enum in the variable name.
+	StoryStatePlanned = "planned"
+	// StoryStateUnstarted wraps the story state enum in the variable name.
+	StoryStateUnstarted = "unstarted"
+	// StoryStateStarted wraps the story state enum in the variable name.
+	StoryStateStarted = "started"
+	// StoryStateFinished wraps the story state enum in the variable name.
+	StoryStateFinished = "finished"
+	// StoryStateDelivered wraps the story state enum in the variable name.
+	StoryStateDelivered = "delivered"
+	// StoryStateAccepted wraps the story state enum in the variable name.
+	StoryStateAccepted = "accepted"
+	// StoryStateRejected wraps the story state enum in the variable name.
+	StoryStateRejected = "rejected"
 )
 
+// Story is the top level data object for a story, it wraps multiple child objects
+// but is the primary required for interacting with the StoryService.
 type Story struct {
-	Id            int        `json:"id,omitempty"`
-	ProjectId     int        `json:"project_id,omitempty"`
+	ID            int        `json:"id,omitempty"`
+	ProjectID     int        `json:"project_id,omitempty"`
 	Name          string     `json:"name,omitempty"`
 	Description   string     `json:"description,omitempty"`
 	Type          string     `json:"story_type,omitempty"`
@@ -44,50 +58,54 @@ type Story struct {
 	Estimate      *float64   `json:"estimate,omitempty"`
 	AcceptedAt    *time.Time `json:"accepted_at,omitempty"`
 	Deadline      *time.Time `json:"deadline,omitempty"`
-	RequestedById int        `json:"requested_by_id,omitempty"`
-	OwnerIds      []int      `json:"owner_ids,omitempty"`
-	LabelIds      []int      `json:"label_ids,omitempty"`
+	RequestedByID int        `json:"requested_by_id,omitempty"`
+	OwnerIDs      []int      `json:"owner_ids,omitempty"`
+	LabelIDs      []int      `json:"label_ids,omitempty"`
 	Labels        []*Label   `json:"labels,omitempty"`
-	TaskIds       []int      `json:"task_ids,omitempty"`
+	TaskIDs       []int      `json:"task_ids,omitempty"`
 	Tasks         []int      `json:"tasks,omitempty"`
-	FollowerIds   []int      `json:"follower_ids,omitempty"`
-	CommentIds    []int      `json:"comment_ids,omitempty"`
+	FollowerIDs   []int      `json:"follower_ids,omitempty"`
+	CommentIDs    []int      `json:"comment_ids,omitempty"`
 	CreatedAt     *time.Time `json:"created_at,omitempty"`
 	UpdatedAt     *time.Time `json:"updated_at,omitempty"`
-	BeforeId      int        `json:"before_id,omitempty"`
-	AfterId       int        `json:"after_id,omitempty"`
-	IntegrationId int        `json:"integration_id,omitempty"`
-	ExternalId    string     `json:"external_id,omitempty"`
+	BeforeID      int        `json:"before_id,omitempty"`
+	AfterID       int        `json:"after_id,omitempty"`
+	IntegrationID int        `json:"integration_id,omitempty"`
+	ExternalID    string     `json:"external_id,omitempty"`
 	URL           string     `json:"url,omitempty"`
 }
 
+// StoryRequest is a simplified Story object for use in Create/Update/Delete operations.
 type StoryRequest struct {
 	Name        string    `json:"name,omitempty"`
 	Description string    `json:"description,omitempty"`
 	Type        string    `json:"story_type,omitempty"`
 	State       string    `json:"current_state,omitempty"`
 	Estimate    *float64  `json:"estimate,omitempty"`
-	OwnerIds    *[]int    `json:"owner_ids,omitempty"`
-	LabelIds    *[]int    `json:"label_ids,omitempty"`
+	OwnerIDs    *[]int    `json:"owner_ids,omitempty"`
+	LabelIDs    *[]int    `json:"label_ids,omitempty"`
 	Labels      *[]*Label `json:"labels,omitempty"`
-	TaskIds     *[]int    `json:"task_ids,omitempty"`
+	TaskIDs     *[]int    `json:"task_ids,omitempty"`
 	Tasks       *[]int    `json:"tasks,omitempty"`
-	FollowerIds *[]int    `json:"follower_ids,omitempty"`
-	CommentIds  *[]int    `json:"comment_ids,omitempty"`
+	FollowerIDs *[]int    `json:"follower_ids,omitempty"`
+	CommentIDs  *[]int    `json:"comment_ids,omitempty"`
 }
 
+// Label is a child object of a Story. This may need to be broken out into a LabelService
+// someday but for now is ok here.
 type Label struct {
-	Id        int        `json:"id,omitempty"`
-	ProjectId int        `json:"project_id,omitempty"`
+	ID        int        `json:"id,omitempty"`
+	ProjectID int        `json:"project_id,omitempty"`
 	Name      string     `json:"name,omitempty"`
 	CreatedAt *time.Time `json:"created_at,omitempty"`
 	UpdatedAt *time.Time `json:"updated_at,omitempty"`
 	Kind      string     `json:"kind,omitempty"`
 }
 
+// Task is a child object of a Story.
 type Task struct {
-	Id          int        `json:"id,omitempty"`
-	StoryId     int        `json:"story_id,omitempty"`
+	ID          int        `json:"id,omitempty"`
+	StoryID     int        `json:"story_id,omitempty"`
 	Description string     `json:"description,omitempty"`
 	Position    int        `json:"position,omitempty"`
 	Complete    bool       `json:"complete,omitempty"`
@@ -95,8 +113,9 @@ type Task struct {
 	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
 }
 
+// Person is a child object of Story to give assigned/reporter values.
 type Person struct {
-	Id       int    `json:"id,omitempty"`
+	ID       int    `json:"id,omitempty"`
 	Name     string `json:"name,omitempty"`
 	Email    string `json:"email,omitempty"`
 	Initials string `json:"initials,omitempty"`
@@ -104,35 +123,40 @@ type Person struct {
 	Kind     string `json:"kind,omitempty"`
 }
 
+// Comment is used to show all comments associated with a Story.
 type Comment struct {
-	Id                  int        `json:"id,omitempty"`
-	StoryId             int        `json:"story_id,omitempty"`
-	EpicId              int        `json:"epic_id,omitempty"`
-	PersonId            int        `json:"person_id,omitempty"`
+	ID                  int        `json:"id,omitempty"`
+	StoryID             int        `json:"story_id,omitempty"`
+	EpicID              int        `json:"epic_id,omitempty"`
+	PersonID            int        `json:"person_id,omitempty"`
 	Text                string     `json:"text,omitempty"`
-	FileAttachmentIds   []int      `json:"file_attachment_ids,omitempty"`
-	GoogleAttachmentIds []int      `json:"google_attachment_ids,omitempty"`
+	FileAttachmentIDs   []int      `json:"file_attachment_ids,omitempty"`
+	GoogleAttachmentIDs []int      `json:"google_attachment_ids,omitempty"`
 	CommitType          string     `json:"commit_type,omitempty"`
 	CommitIdentifier    string     `json:"commit_identifier,omitempty"`
 	CreatedAt           *time.Time `json:"created_at,omitempty"`
 	UpdatedAt           *time.Time `json:"updated_at,omitempty"`
 }
 
+// Blocker shows the relationship between other Stories and blocking states.
 type Blocker struct {
-	Id          int        `json:"id,omitempty"`
-	StoryId     int        `json:"story_id,omitempty"`
-	PersonId    int        `json:"person_id,omitempty"`
+	ID          int        `json:"id,omitempty"`
+	StoryID     int        `json:"story_id,omitempty"`
+	PersonID    int        `json:"person_id,omitempty"`
 	Description string     `json:"description,omitempty"`
 	Resolved    bool       `json:"resolved,omitempty"`
 	CreatedAt   *time.Time `json:"created_at,omitempty"`
 	UpdatedAt   *time.Time `json:"updated_at,omitempty"`
 }
 
+// BlockerRequest is used to do Create/Update/Delete on blockers.
 type BlockerRequest struct {
 	Description string `json:"description,omitempty"`
 	Resolved    *bool  `json:"resolved,omitempty"`
 }
 
+// StoryService wraps the client context and allows for interaction
+// with the Pivotal Tracker Story API.
 type StoryService struct {
 	client *Client
 }
@@ -149,8 +173,8 @@ func newStoryService(client *Client) *StoryService {
 // to get the right results. Since the response as generated by Pivotal Tracker
 // is not always sorted when using a filter, this approach is required to get
 // the right data. Not sure whether this is a bug or a feature.
-func (service *StoryService) List(projectId int, filter string) ([]*Story, error) {
-	reqFunc := newStoriesRequestFunc(service.client, projectId, filter)
+func (service *StoryService) List(projectID int, filter string) ([]*Story, error) {
+	reqFunc := newStoriesRequestFunc(service.client, projectID, filter)
 	cursor, err := newCursor(service.client, reqFunc, 0)
 	if err != nil {
 		return nil, err
@@ -163,9 +187,9 @@ func (service *StoryService) List(projectId int, filter string) ([]*Story, error
 	return stories, nil
 }
 
-func newStoriesRequestFunc(client *Client, projectId int, filter string) func() *http.Request {
+func newStoriesRequestFunc(client *Client, projectID int, filter string) func() *http.Request {
 	return func() *http.Request {
-		u := fmt.Sprintf("projects/%v/stories", projectId)
+		u := fmt.Sprintf("projects/%v/stories", projectID)
 		if filter != "" {
 			u += "?filter=" + url.QueryEscape(filter)
 		}
@@ -174,6 +198,7 @@ func newStoriesRequestFunc(client *Client, projectId int, filter string) func() 
 	}
 }
 
+// StoryCursor is used to implement the iterator pattern.
 type StoryCursor struct {
 	*cursor
 	buff []*Story
@@ -200,8 +225,8 @@ func (c *StoryCursor) Next() (s *Story, err error) {
 
 // Iterate returns a cursor that can be used to iterate over the stories specified
 // by the filter. More stories are fetched on demand as needed.
-func (service *StoryService) Iterate(projectId int, filter string) (c *StoryCursor, err error) {
-	reqFunc := newStoriesRequestFunc(service.client, projectId, filter)
+func (service *StoryService) Iterate(projectID int, filter string) (c *StoryCursor, err error) {
+	reqFunc := newStoriesRequestFunc(service.client, projectID, filter)
 	cursor, err := newCursor(service.client, reqFunc, PageLimit)
 	if err != nil {
 		return nil, err
@@ -209,8 +234,9 @@ func (service *StoryService) Iterate(projectId int, filter string) (c *StoryCurs
 	return &StoryCursor{cursor, make([]*Story, 0)}, nil
 }
 
-func (service *StoryService) Create(projectId int, story *StoryRequest) (*Story, *http.Response, error) {
-	if projectId == 0 {
+// Create is used to make a new Story.
+func (service *StoryService) Create(projectID int, story *StoryRequest) (*Story, *http.Response, error) {
+	if projectID == 0 {
 		return nil, nil, &ErrFieldNotSet{"project_id"}
 	}
 
@@ -218,7 +244,7 @@ func (service *StoryService) Create(projectId int, story *StoryRequest) (*Story,
 		return nil, nil, &ErrFieldNotSet{"name"}
 	}
 
-	u := fmt.Sprintf("projects/%v/stories", projectId)
+	u := fmt.Sprintf("projects/%v/stories", projectID)
 	req, err := service.client.NewRequest("POST", u, story)
 	if err != nil {
 		return nil, nil, err
@@ -234,8 +260,9 @@ func (service *StoryService) Create(projectId int, story *StoryRequest) (*Story,
 	return &newStory, resp, nil
 }
 
-func (service *StoryService) Get(projectId, storyId int) (*Story, *http.Response, error) {
-	u := fmt.Sprintf("projects/%v/stories/%v", projectId, storyId)
+// Get will obtain the details about a single Story by ID.
+func (service *StoryService) Get(projectID, storyID int) (*Story, *http.Response, error) {
+	u := fmt.Sprintf("projects/%v/stories/%v", projectID, storyID)
 	req, err := service.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err
@@ -250,8 +277,9 @@ func (service *StoryService) Get(projectId, storyId int) (*Story, *http.Response
 	return &story, resp, err
 }
 
-func (service *StoryService) Update(projectId, storyId int, story *StoryRequest) (*Story, *http.Response, error) {
-	u := fmt.Sprintf("projects/%v/stories/%v", projectId, storyId)
+// Update will change details of an existing story.
+func (service *StoryService) Update(projectID, storyID int, story *StoryRequest) (*Story, *http.Response, error) {
+	u := fmt.Sprintf("projects/%v/stories/%v", projectID, storyID)
 	req, err := service.client.NewRequest("PUT", u, story)
 	if err != nil {
 		return nil, nil, err
@@ -267,8 +295,9 @@ func (service *StoryService) Update(projectId, storyId int, story *StoryRequest)
 
 }
 
-func (service *StoryService) ListTasks(projectId, storyId int) ([]*Task, *http.Response, error) {
-	u := fmt.Sprintf("projects/%v/stories/%v/tasks", projectId, storyId)
+// ListTasks will get the Tasks associated with a Story by ID.
+func (service *StoryService) ListTasks(projectID, storyID int) ([]*Task, *http.Response, error) {
+	u := fmt.Sprintf("projects/%v/stories/%v/tasks", projectID, storyID)
 	req, err := service.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err
@@ -283,12 +312,13 @@ func (service *StoryService) ListTasks(projectId, storyId int) ([]*Task, *http.R
 	return tasks, resp, err
 }
 
-func (service *StoryService) AddTask(projectId, storyId int, task *Task) (*http.Response, error) {
+// AddTask will add a new Task to a Story by ID.
+func (service *StoryService) AddTask(projectID, storyID int, task *Task) (*http.Response, error) {
 	if task.Description == "" {
 		return nil, &ErrFieldNotSet{"description"}
 	}
 
-	u := fmt.Sprintf("projects/%v/stories/%v/tasks", projectId, storyId)
+	u := fmt.Sprintf("projects/%v/stories/%v/tasks", projectID, storyID)
 	req, err := service.client.NewRequest("POST", u, task)
 	if err != nil {
 		return nil, err
@@ -297,8 +327,9 @@ func (service *StoryService) AddTask(projectId, storyId int, task *Task) (*http.
 	return service.client.Do(req, nil)
 }
 
-func (service *StoryService) ListOwners(projectId, storyId int) ([]*Person, *http.Response, error) {
-	u := fmt.Sprintf("projects/%d/stories/%d/owners", projectId, storyId)
+// ListOwners will show who is assigned to a story, returning a Person array.
+func (service *StoryService) ListOwners(projectID, storyID int) ([]*Person, *http.Response, error) {
+	u := fmt.Sprintf("projects/%d/stories/%d/owners", projectID, storyID)
 	req, err := service.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err
@@ -313,13 +344,14 @@ func (service *StoryService) ListOwners(projectId, storyId int) ([]*Person, *htt
 	return owners, resp, err
 }
 
+// AddComment will take a Comment object and attach it to a Story.
 func (service *StoryService) AddComment(
-	projectId int,
-	storyId int,
+	projectID int,
+	storyID int,
 	comment *Comment,
 ) (*Comment, *http.Response, error) {
 
-	u := fmt.Sprintf("projects/%v/stories/%v/comments", projectId, storyId)
+	u := fmt.Sprintf("projects/%v/stories/%v/comments", projectID, storyID)
 	req, err := service.client.NewRequest("POST", u, comment)
 	if err != nil {
 		return nil, nil, err
@@ -336,11 +368,11 @@ func (service *StoryService) AddComment(
 
 // ListComments returns the list of Comments in a Story.
 func (service *StoryService) ListComments(
-	projectId int,
-	storyId int,
+	projectID int,
+	storyID int,
 ) ([]*Comment, *http.Response, error) {
 
-	u := fmt.Sprintf("projects/%v/stories/%v/comments", projectId, storyId)
+	u := fmt.Sprintf("projects/%v/stories/%v/comments", projectID, storyID)
 	req, err := service.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err
@@ -357,11 +389,11 @@ func (service *StoryService) ListComments(
 
 // ListBlockers returns the list of Blockers in a Story.
 func (service *StoryService) ListBlockers(
-	projectId int,
-	storyId int,
+	projectID int,
+	storyID int,
 ) ([]*Blocker, *http.Response, error) {
 
-	u := fmt.Sprintf("projects/%v/stories/%v/blockers", projectId, storyId)
+	u := fmt.Sprintf("projects/%v/stories/%v/blockers", projectID, storyID)
 	req, err := service.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err
@@ -376,8 +408,9 @@ func (service *StoryService) ListBlockers(
 	return blockers, resp, nil
 }
 
-func (service *StoryService) AddBlocker(projectId int, storyId int, description string) (*Blocker, *http.Response, error) {
-	u := fmt.Sprintf("projects/%v/stories/%v/blockers", projectId, storyId)
+// AddBlocker will add a Blocker to a Story by ID
+func (service *StoryService) AddBlocker(projectID int, storyID int, description string) (*Blocker, *http.Response, error) {
+	u := fmt.Sprintf("projects/%v/stories/%v/blockers", projectID, storyID)
 	req, err := service.client.NewRequest("POST", u, BlockerRequest{
 		Description: description,
 	})
@@ -394,8 +427,9 @@ func (service *StoryService) AddBlocker(projectId int, storyId int, description 
 	return &blocker, resp, nil
 }
 
-func (service *StoryService) UpdateBlocker(projectId, stroyId, blockerId int, blocker *BlockerRequest) (*Blocker, *http.Response, error) {
-	u := fmt.Sprintf("projects/%v/stories/%v/blockers/%v", projectId, stroyId, blockerId)
+// UpdateBlocker will change an existing Blocker attached to a story by ID.
+func (service *StoryService) UpdateBlocker(projectID, storyID, blockerID int, blocker *BlockerRequest) (*Blocker, *http.Response, error) {
+	u := fmt.Sprintf("projects/%v/stories/%v/blockers/%v", projectID, storyID, blockerID)
 	req, err := service.client.NewRequest("PUT", u, blocker)
 	if err != nil {
 		return nil, nil, err

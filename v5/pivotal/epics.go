@@ -1,4 +1,7 @@
-// nolint
+// Copyright (c) 2018 Salsita Software
+// Use of this source code is governed by the MIT License.
+// The license can be found in the LICENSE file.
+
 package pivotal
 
 import (
@@ -9,7 +12,7 @@ import (
 	"time"
 )
 
-// Epic is ..
+// Epic is the primary data object for the epic service.
 type Epic struct {
 	ID          int        `json:"id,omitempty"`
 	ProjectID   int        `json:"project_id,omitempty"`
@@ -27,7 +30,7 @@ type Epic struct {
 	Kind        string     `json:"kind,omitempty"`
 }
 
-// EpicRequest is ..
+// EpicRequest is used to get the Epics back.
 type EpicRequest struct {
 	ProjectID   int       `json:"project_id,omitempty"`
 	Name        string    `json:"name,omitempty"`
@@ -42,7 +45,7 @@ type EpicRequest struct {
 	BeforeID    int       `json:"before_id,omitempty"`
 }
 
-// EpicService ...
+// EpicService wraps the client context to do actions.
 type EpicService struct {
 	client *Client
 }
@@ -84,7 +87,7 @@ func newEpicsRequestFunc(client *Client, projectID int, filter string) func() *h
 	}
 }
 
-// EpicCursor is
+// EpicCursor is used to implement the iterator pattern.
 type EpicCursor struct {
 	*cursor
 	buff []*Epic
@@ -120,7 +123,7 @@ func (service *EpicService) Iterate(projectID int, filter string) (c *EpicCursor
 	return &EpicCursor{cursor, make([]*Epic, 0)}, nil
 }
 
-// Create is ..
+// Create is used to create a new Epic with an EpicRequest.
 func (service *EpicService) Create(projectID int, epic *EpicRequest) (*Epic, *http.Response, error) {
 	if projectID == 0 {
 		return nil, nil, &ErrFieldNotSet{"project_id"}
@@ -146,7 +149,7 @@ func (service *EpicService) Create(projectID int, epic *EpicRequest) (*Epic, *ht
 	return &newEpic, resp, nil
 }
 
-// Get is ..
+// Get is returns an Epic by ID.
 func (service *EpicService) Get(projectID, epicID int) (*Epic, *http.Response, error) {
 	u := fmt.Sprintf("projects/%v/epics/%v", projectID, epicID)
 	req, err := service.client.NewRequest("GET", u, nil)
@@ -163,7 +166,7 @@ func (service *EpicService) Get(projectID, epicID int) (*Epic, *http.Response, e
 	return &epic, resp, err
 }
 
-// Update is ..
+// Update is will update an Epic with an EpicRequest.
 func (service *EpicService) Update(projectID, epicID int, epic *EpicRequest) (*Epic, *http.Response, error) {
 	u := fmt.Sprintf("projects/%v/stories/%v", projectID, epicID)
 	req, err := service.client.NewRequest("PUT", u, epic)

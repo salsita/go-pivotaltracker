@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Salsita Software
+// Copyright (c) 2014-2018 Salsita Software
 // Use of this source code is governed by the MIT License.
 // The license can be found in the LICENSE file.
 
@@ -9,22 +9,24 @@ import (
 	"time"
 )
 
+// Me is the primary data object for the MeService.
 type Me struct {
-	Id                         int        `json:"id"`
+	ID                         int        `json:"id"`
 	Name                       string     `json:"name"`
 	Initials                   string     `json:"initials"`
 	Username                   string     `json:"username"`
 	TimeZone                   *TimeZone  `json:"time_zone"`
-	ApiToken                   string     `json:"api_token"`
+	APIToken                   string     `json:"api_token"`
 	HasGoogleIdentity          bool       `json:"has_google_identity"`
-	ProjectIds                 *[]int     `json:"project_ids"`
-	WorkspaceIds               *[]int     `json:"workspace_ids"`
+	ProjectIDs                 *[]int     `json:"project_ids"`
+	WorkspaceIDs               *[]int     `json:"workspace_ids"`
 	Email                      string     `json:"email"`
 	ReceivedInAppNotifications bool       `json:"receives_in_app_notifications"`
 	CreatedAt                  *time.Time `json:"created_at"`
 	UpdatedAt                  *time.Time `json:"updated_at"`
 }
 
+// MeService wraps the client context for interacting with the Me logic.
 type MeService struct {
 	client *Client
 }
@@ -33,6 +35,7 @@ func newMeService(client *Client) *MeService {
 	return &MeService{client}
 }
 
+// Get returns information about the calling user.
 func (service *MeService) Get() (*Me, *http.Response, error) {
 	req, err := service.client.NewRequest("GET", "me", nil)
 	if err != nil {

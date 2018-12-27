@@ -1,4 +1,4 @@
-// Copyright (c) 2014 Salsita Software
+// Copyright (c) 2014-2018 Salsita Software
 // Use of this source code is governed by the MIT License.
 // The license can be found in the LICENSE file.
 
@@ -13,14 +13,17 @@ import (
 )
 
 const (
-	LibraryVersion = "0.0.1"
+	// LibraryVersion is used to give the UserAgent some additional context
+	LibraryVersion = "2.0.0"
 
 	defaultBaseURL   = "https://www.pivotaltracker.com/services/v5/"
 	defaultUserAgent = "go-pivotaltracker/" + LibraryVersion
 )
 
+// ErrNoTrailingSlash is returned when URLs are missing the trailing slash
 var ErrNoTrailingSlash = errors.New("trailing slash missing")
 
+// Client wraps all Pivotal Tracker services with necessary auth contexts
 type Client struct {
 	// Pivotal Tracker access token to be used to authenticate API requests.
 	token string
@@ -56,6 +59,8 @@ type Client struct {
 	Epic *EpicService
 }
 
+// NewClient takes a Pivotal Tracker API Token (created from the project settings) and
+// returns a default Client implementation
 func NewClient(apiToken string) *Client {
 	baseURL, _ := url.Parse(defaultBaseURL)
 	client := &Client{
@@ -74,6 +79,7 @@ func NewClient(apiToken string) *Client {
 	return client
 }
 
+// SetBaseURL overrides the defaultBaseURL in the default Client implementation.
 func (c *Client) SetBaseURL(baseURL string) error {
 	u, err := url.Parse(baseURL)
 	if err != nil {
@@ -88,10 +94,12 @@ func (c *Client) SetBaseURL(baseURL string) error {
 	return nil
 }
 
+// SetUserAgent overrides the defaultUserAgent in the default Client implementation.
 func (c *Client) SetUserAgent(agent string) {
 	c.userAgent = agent
 }
 
+// NewRequest takes an HTTP request definition and wraps it with the Client context.
 func (c *Client) NewRequest(method, urlPath string, body interface{}) (*http.Request, error) {
 	path, err := url.Parse(urlPath)
 	if err != nil {
@@ -118,6 +126,7 @@ func (c *Client) NewRequest(method, urlPath string, body interface{}) (*http.Req
 	return req, nil
 }
 
+// Do takes a request created from NewRequest and executes the HTTP round trip action.
 func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	resp, err := c.client.Do(req)
 	if err != nil {

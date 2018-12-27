@@ -1,7 +1,8 @@
-// Copyright (c) 2014 Salsita Software
-// Copyright (C) 2015 Scott Devoid
+// Copyright (c) 2014-2018 Salsita Software
+// Copyright (c) 2015 Scott Devoid
 // Use of this source code is governed by the MIT License.
 // The license can be found in the LICENSE file.
+
 package pivotal
 
 import (
@@ -10,6 +11,7 @@ import (
 	"time"
 )
 
+// ProjectMembership is the primary data object for the MembershipService.
 type ProjectMembership struct {
 	Person         Person
 	ID             int        `json:"id,omitempty"`
@@ -24,6 +26,7 @@ type ProjectMembership struct {
 	UpdatedAt      *time.Time `json:"updated_at,omitempty"`
 }
 
+// MembershipService wraps the client context for interacting with project members.
 type MembershipService struct {
 	client *Client
 }
@@ -33,8 +36,8 @@ func newMembershipService(client *Client) *MembershipService {
 }
 
 // List all of the memberships in an account.
-func (service *MembershipService) List(projectId int) ([]*ProjectMembership, *http.Response, error) {
-	u := fmt.Sprintf("projects/%v/memberships", projectId)
+func (service *MembershipService) List(projectID int) ([]*ProjectMembership, *http.Response, error) {
+	u := fmt.Sprintf("projects/%v/memberships", projectID)
 	req, err := service.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err

@@ -1,3 +1,7 @@
+// Copyright (c) 2014-2018 Salsita Software
+// Use of this source code is governed by the MIT License.
+// The license can be found in the LICENSE file.
+
 package pivotal
 
 import (
@@ -5,8 +9,10 @@ import (
 	"time"
 )
 
+// Date wraps a compatible time.Time object for marshal/unmarshal operations
 type Date time.Time
 
+// UnmarshalJSON implements the json.Unmarshaler() interface for the Date object
 func (date *Date) UnmarshalJSON(content []byte) error {
 	s := string(content)
 
@@ -33,6 +39,7 @@ func (date *Date) UnmarshalJSON(content []byte) error {
 	return nil
 }
 
-func (date Date) MarshalJson() ([]byte, error) {
+// MarshalJSON implements the json.Marshaler() interface for the Date object
+func (date Date) MarshalJSON() ([]byte, error) {
 	return []byte((time.Time)(date).Format("2006-01-02")), nil
 }

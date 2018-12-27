@@ -1,7 +1,8 @@
-// Copyright (c) 2014 Salsita Software
-// Copyright (C) 2015 Scott Devoid
+// Copyright (c) 2014-2018 Salsita Software
+// Copyright (c) 2015 Scott Devoid
 // Use of this source code is governed by the MIT License.
 // The license can be found in the LICENSE file.
+
 package pivotal
 
 import (
@@ -10,34 +11,50 @@ import (
 	"time"
 )
 
+// Day casts string values to a custom object
 type Day string
 
 const (
-	DayMonday    Day = "Monday"
-	DayTuesday   Day = "Tuesday"
+	// DayMonday wraps the day string of the variable name.
+	DayMonday Day = "Monday"
+	// DayTuesday wraps the day string of the variable name.
+	DayTuesday Day = "Tuesday"
+	// DayWednesday wraps the day string of the variable name.
 	DayWednesday Day = "Wednesday"
-	DayThursday  Day = "Thursday"
-	DayFriday    Day = "Friday"
-	DaySaturday  Day = "Saturday"
-	DaySunday    Day = "Sunday"
+	// DayThursday wraps the day string of the variable name.
+	DayThursday Day = "Thursday"
+	// DayFriday wraps the day string of the variable name.
+	DayFriday Day = "Friday"
+	// DaySaturday wraps the day string of the variable name.
+	DaySaturday Day = "Saturday"
+	// DaySunday wraps the day string of the variable name.
+	DaySunday Day = "Sunday"
 )
 
 const (
-	ProjectTypePublic  = "public"
+	// ProjectTypePublic wraps the string of the variable name.
+	ProjectTypePublic = "public"
+	// ProjectTypePrivate wraps the string of the variable name.
 	ProjectTypePrivate = "private"
-	ProjectTypeDemo    = "demo"
+	// ProjectTypeDemo wraps the string of the variable name.
+	ProjectTypeDemo = "demo"
 )
 
+// AccountingType casts string values of billing types.
 type AccountingType string
 
 const (
+	// AccountingTypeUnbillable wraps the string in the variable name.
 	AccountingTypeUnbillable AccountingType = "unbillable"
-	AccountingTypeBillable   AccountingType = "billable"
-	AccountingTypeOverhead   AccountingType = "overhead"
+	// AccountingTypeBillable wraps the string in the variable name.
+	AccountingTypeBillable AccountingType = "billable"
+	// AccountingTypeOverhead wraps the string in the variable name.
+	AccountingTypeOverhead AccountingType = "overhead"
 )
 
+// Project is the primary data object of the ProjectService.
 type Project struct {
-	Id                           int            `json:"id"`
+	ID                           int            `json:"id"`
 	Name                         string         `json:"name"`
 	Version                      int            `json:"version"`
 	IterationLength              int            `json:"iteration_length"`
@@ -64,19 +81,21 @@ type Project struct {
 	CurrentIterationNumber       int            `json:"current_iteration_number"`
 	CurrentVelocity              int            `json:"current_velocity"`
 	CurrentVolatility            float64        `json:"current_volatility"`
-	AccountId                    int            `json:"account_id"`
+	AccountID                    int            `json:"account_id"`
 	AccountingType               AccountingType `json:"accounting_type"`
 	Featured                     bool           `json:"featured"`
-	StoryIds                     []int          `json:"story_ids"`
-	EpicIds                      []int          `json:"epic_ids"`
-	MembershipIds                []int          `json:"membership_ids"`
-	LabelIds                     []int          `json:"label_ids"`
-	IntegrationIds               []int          `json:"integration_ids"`
+	StoryIDs                     []int          `json:"story_ids"`
+	EpicIDs                      []int          `json:"epic_ids"`
+	MembershipIDs                []int          `json:"membership_ids"`
+	LabelIDs                     []int          `json:"label_ids"`
+	IntegrationIDs               []int          `json:"integration_ids"`
 	IterationOverrideNumbers     []int          `json:"iteration_override_numbers"`
 	CreatedAt                    *time.Time     `json:"created_at"`
 	UpdatedAt                    *time.Time     `json:"updated_at"`
 }
 
+// ProjectService wraps the client context for interacting with project
+// specific details.
 type ProjectService struct {
 	client *Client
 }
@@ -101,8 +120,9 @@ func (service *ProjectService) List() ([]*Project, *http.Response, error) {
 	return projects, resp, err
 }
 
-func (service *ProjectService) Get(projectId int) (*Project, *http.Response, error) {
-	u := fmt.Sprintf("projects/%v", projectId)
+// Get returns a specific project's information.
+func (service *ProjectService) Get(projectID int) (*Project, *http.Response, error) {
+	u := fmt.Sprintf("projects/%v", projectID)
 	req, err := service.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err

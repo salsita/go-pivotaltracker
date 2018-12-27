@@ -1,0 +1,10 @@
+language: go
+
+go:
+  - "1.11.x"
+  - master
+  
+script: 
+  - go get -u golang.org/x/lint/golint
+  - cd v5/pivotal
+  - golint -set_exit_status
