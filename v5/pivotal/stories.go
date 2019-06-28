@@ -16,6 +16,20 @@ import (
 // PageLimit is the number of items to fetch at once when getting paginated response.
 const PageLimit = 10
 
+// ReviewStatus is the status of a review.
+type ReviewStatus string
+
+const (
+	// ReviewStatusUnstarted indicates that a review has not been started.
+	ReviewStatusUnstarted ReviewStatus = "unstarted"
+	// ReviewStatusInReview indicates that a review is in progress.
+	ReviewStatusInReview ReviewStatus = "in_review"
+	// ReviewStatusPass indicates that the story has passed review.
+	ReviewStatusPass ReviewStatus = "pass"
+	// ReviewStatusRevise indicates that revisions are needed.
+	ReviewStatusRevise ReviewStatus = "revise"
+)
+
 const (
 	// StoryTypeFeature wraps the string enum in the variable name.
 	StoryTypeFeature = "feature"
@@ -153,6 +167,18 @@ type Blocker struct {
 type BlockerRequest struct {
 	Description string `json:"description,omitempty"`
 	Resolved    *bool  `json:"resolved,omitempty"`
+}
+
+// Review is a review on a PT story
+type Review struct {
+	ID           int          `json:"id,omitempty"`
+	StoryID      int          `json:"story_id,omitempty"`
+	ReviewTypeID int          `json:"review_type_id,omitempty"`
+	ReviewerID   int          `json:"reviewer_id,omitempty"`
+	Status       ReviewStatus `json:"status,omitempty"`
+	CreatedAt    *time.Time   `json:"created_at,omitempty"`
+	UpdatedAt    *time.Time   `json:"updated_at,omitempty"`
+	Kind         string       `json:"kind,omitempty"`
 }
 
 // StoryService wraps the client context and allows for interaction
@@ -442,4 +468,25 @@ func (service *StoryService) UpdateBlocker(projectID, storyID, blockerID int, bl
 	}
 
 	return &blockerResp, resp, nil
+}
+
+// ListReviews returns the list of Reviews in a Story.
+func (service *StoryService) ListReviews(
+	projectID int,
+	storyID int,
+) ([]*Review, *http.Response, error) {
+
+	u := fmt.Sprintf("projects/%v/stories/%v/reviews", projectID, storyID)
+	req, err := service.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var reviews []*Review
+	resp, err := service.client.Do(req, &reviews)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return reviews, resp, nil
 }
