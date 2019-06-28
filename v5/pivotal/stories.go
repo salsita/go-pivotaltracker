@@ -260,9 +260,26 @@ func (service *StoryService) Create(projectID int, story *StoryRequest) (*Story,
 	return &newStory, resp, nil
 }
 
-// Get will obtain the details about a single Story by ID.
+// Get will obtain the details about a single Story by project and story ID.
 func (service *StoryService) Get(projectID, storyID int) (*Story, *http.Response, error) {
 	u := fmt.Sprintf("projects/%v/stories/%v", projectID, storyID)
+	req, err := service.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var story Story
+	resp, err := service.client.Do(req, &story)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &story, resp, err
+}
+
+// GetByID will obtain the details about a single Story by the story ID only.
+func (service *StoryService) GetByID(storyID int) (*Story, *http.Response, error) {
+	u := fmt.Sprintf("stories/%d", storyID)
 	req, err := service.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err
