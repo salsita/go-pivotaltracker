@@ -8,6 +8,7 @@ package pivotal
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 type SearchResponse struct {
@@ -28,7 +29,7 @@ func newSearchService(client *Client) *SearchService {
 
 // Search searches the project data and returns the stories and/or epics matching the query
 func (service *SearchService) Search(projectID int, query string) (SearchResponse, *http.Response, error) {
-	u := fmt.Sprintf("projects/%v/search?query=%s", projectID, query)
+	u := fmt.Sprintf("projects/%v/search?query=%s", projectID, url.QueryEscape(query))
 	req, _ := service.client.NewRequest("GET", u, nil)
 	var searchResponse SearchResponse
 	resp, err := service.client.Do(req, &searchResponse)
