@@ -383,6 +383,28 @@ func (service *StoryService) AddComment(
 	return &newComment, resp, err
 }
 
+// UpdateComment will take a Comment object and update it.
+func (service *StoryService) UpdateComment(
+	projectID int,
+	storyID int,
+	comment *Comment,
+) (*Comment, *http.Response, error) {
+
+	u := fmt.Sprintf("projects/%v/stories/%v/comments/%v", projectID, storyID, comment.ID)
+	req, err := service.client.NewRequest("PUT", u, comment)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var newComment Comment
+	resp, err := service.client.Do(req, &newComment)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &newComment, resp, err
+}
+
 // ListComments returns the list of Comments in a Story.
 func (service *StoryService) ListComments(
 	projectID int,
