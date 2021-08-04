@@ -157,14 +157,26 @@ type BlockerRequest struct {
 
 // Review is a review on a PT story
 type Review struct {
-	ID           int        `json:"id,omitempty"`
-	StoryID      int        `json:"story_id,omitempty"`
-	ReviewTypeID int        `json:"review_type_id,omitempty"`
-	ReviewerID   int        `json:"reviewer_id,omitempty"`
-	Status       string     `json:"status,omitempty"`
-	CreatedAt    *time.Time `json:"created_at,omitempty"`
-	UpdatedAt    *time.Time `json:"updated_at,omitempty"`
-	Kind         string     `json:"kind,omitempty"`
+	ID           int         `json:"id,omitempty"`
+	StoryID      int         `json:"story_id,omitempty"`
+	ReviewType   *ReviewType `json:"review_type,omitempty"`
+	ReviewTypeID int         `json:"review_type_id,omitempty"`
+	ReviewerID   int         `json:"reviewer_id,omitempty"`
+	Status       string      `json:"status,omitempty"`
+	CreatedAt    *time.Time  `json:"created_at,omitempty"`
+	UpdatedAt    *time.Time  `json:"updated_at,omitempty"`
+	Kind         string      `json:"kind,omitempty"`
+}
+
+// ReviewType is a review_type resource.
+type ReviewType struct {
+	ID        int        `json:"id,omitempty"`
+	ProjectID int        `json:"project_id,omitempty"`
+	Name      string     `json:"name,omitempty"`
+	Hidden    bool       `json:"hidden,omitempty"`
+	CreatedAt *time.Time `json:"created_at,omitempty"`
+	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+	Kind      string     `json:"kind,omitempty"`
 }
 
 // StoryService wraps the client context and allows for interaction
@@ -479,7 +491,11 @@ func (service *StoryService) ListReviews(
 	storyID int,
 ) ([]*Review, *http.Response, error) {
 
-	u := fmt.Sprintf("projects/%v/stories/%v/reviews", projectID, storyID)
+	u := fmt.Sprintf(
+		"projects/%v/stories/%v/reviews?fields=id,story_id,review_type,review_type_id,reviewer_id,status,created_at,updated_at,kind",
+		projectID,
+		storyID,
+	)
 	req, err := service.client.NewRequest("GET", u, nil)
 	if err != nil {
 		return nil, nil, err
