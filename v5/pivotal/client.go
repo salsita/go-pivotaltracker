@@ -94,6 +94,11 @@ func (c *Client) SetBaseURL(baseURL string) error {
 	return nil
 }
 
+// SetHTTPClient overrides the default HTTP Client, http.DefaultClient.
+func (c *Client) SetHTTPClient(client *http.Client) {
+	c.client = client
+}
+
 // SetUserAgent overrides the defaultUserAgent in the default Client implementation.
 func (c *Client) SetUserAgent(agent string) {
 	c.userAgent = agent
