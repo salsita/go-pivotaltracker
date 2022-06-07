@@ -3,14 +3,26 @@ package pivotal
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 )
 
 const aggregatorURL = "https://www.pivotaltracker.com/services/v5/aggregator"
 
+// PT doesn't allow more than around 15 urls in one aggregation request.
+// However, this was found by experimenting. There was no official
+// rate-limiting data in their docs.
+const perPage = 15 // GET requests per aggregation requests.
+
 // AggregatorService is used to wrap the client.
 type AggregatorService struct {
 	client *Client
+}
+
+type AggregationRequest struct {
+	url       string
+	projectID int
+	storyID   int
 }
 
 // Aggregation object stores the state of the aggregation.
@@ -23,6 +35,9 @@ type Aggregation struct {
 
 	// Map for quickly accessing the stories using their IDs
 	aggregatedData map[int]*AggregatedStory
+
+	// The service of the aggregation
+	service *AggregatorService
 }
 
 // AggregatedStory contains the story, comment and review information.
@@ -32,6 +47,15 @@ type AggregatedStory struct {
 	Reviews  *[]Review
 }
 
+func (a *AggregatorService) GetBuilder() *Aggregation {
+	aggregation := Aggregation{
+		aggregatedResponse: make(map[string]interface{}),
+		aggregatedData:     make(map[int]*AggregatedStory),
+		service:            a,
+	}
+	return &aggregation
+}
+
 func newAggregatorService(client *Client) *AggregatorService {
 	return &AggregatorService{client}
 }
@@ -39,34 +63,20 @@ func newAggregatorService(client *Client) *AggregatorService {
 func (a *Aggregation) maybeCreateAggregatedStory(StoryID int) *AggregatedStory {
 	story, ok := a.aggregatedData[StoryID]
 	if !ok {
-		a.aggregatedData[StoryID] = &AggregatedStory{}
+		a.aggregatedData[StoryID] = &AggregatedStory{
+			Comments: &[]Comment{},
+			Reviews:  &[]Review{},
+		}
+
 		return a.aggregatedData[StoryID]
 	}
 	return story
 }
 
-// Fills the urls for the aggregator and sends the request to PT.
-func (service *AggregatorService) fillAggregationData(ProjectID int, StoryIDs []int) (*Aggregation, error) {
-	aggregation := &Aggregation{
-		aggregatedResponse: make(map[string]interface{}),
-		aggregatedData:     make(map[int]*AggregatedStory),
-	}
-	for _, ID := range StoryIDs {
-		aggregation.queueStoryByID(ProjectID, ID)
-		aggregation.queueStoryCommentsByID(ProjectID, ID)
-		aggregation.queueReviewsByID(ProjectID, ID)
-	}
-	err := service.sendAggregationRequest(aggregation)
-	if err != nil {
-		return nil, err
-	}
-	return aggregation, nil
-}
-
 // Converts the JSON response from PT into the related structs(Story, Comment, Review).
-func (service *AggregatorService) processAggregationMaps(aggregation *Aggregation) (*Aggregation, error) {
+func (a *Aggregation) processAggregationMaps() (*Aggregation, error) {
 	// Creating the map with the story information.
-	for url, byteStory := range aggregation.aggregatedResponse {
+	for url, byteStory := range a.aggregatedResponse {
 		byteData, _ := json.Marshal(byteStory)
 
 		if strings.Contains(url, "reviews") {
@@ -79,7 +89,7 @@ func (service *AggregatorService) processAggregationMaps(aggregation *Aggregatio
 				continue
 			}
 			// Accessing the reviews using the story ID
-			storyData := aggregation.maybeCreateAggregatedStory(reviews[0].StoryID)
+			storyData := a.maybeCreateAggregatedStory(reviews[0].StoryID)
 			storyData.Reviews = &reviews
 			continue
 		}
@@ -94,7 +104,7 @@ func (service *AggregatorService) processAggregationMaps(aggregation *Aggregatio
 				continue
 			}
 			// Accessing the reviews using the story ID
-			storyData := aggregation.maybeCreateAggregatedStory(comments[0].StoryID)
+			storyData := a.maybeCreateAggregatedStory(comments[0].StoryID)
 			storyData.Comments = &comments
 			continue
 		}
@@ -109,65 +119,106 @@ func (service *AggregatorService) processAggregationMaps(aggregation *Aggregatio
 			continue
 		}
 		// Accessing the story with the story ID
-		storyData := aggregation.maybeCreateAggregatedStory(story.ID)
+		storyData := a.maybeCreateAggregatedStory(story.ID)
 		storyData.Story = &story
 
 	}
 
-	return aggregation, nil
-}
-
-// BuildStoriesCommentsAndReviewsFor returns the reviews, comments and the story information
-// for the given project and story IDs.
-func (service *AggregatorService) BuildStoriesCommentsAndReviewsFor(ProjectID int, StoryIDs []int) (*Aggregation, error) {
-	if len(StoryIDs) > 5 {
-		// Aggregator doesn't seem to be returning more than 15 requests in total.
-		return nil, fmt.Errorf("There can be a maximum number of 5 Story IDs.")
-	}
-
-	aggregation, err := service.fillAggregationData(ProjectID, StoryIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	aggregation, err = service.processAggregationMaps(aggregation)
-	if err != nil {
-		return nil, err
-	}
-
-	return aggregation, nil
-}
-
-// Adds the url for the comments to the aggregation data.
-func (a *Aggregation) queueStoryCommentsByID(projectID, storyID int) {
-	u := fmt.Sprintf("/services/v5/projects/%d/stories/%d/comments", projectID, storyID)
-	a.requests = append(a.requests, u)
+	return a, nil
 }
 
 // Adds the url for the story to the aggregation data.
-func (a *Aggregation) queueStoryByID(projectID, storyID int) {
-	u := fmt.Sprintf("/services/v5/projects/%d/stories/%d", projectID, storyID)
-	a.requests = append(a.requests, u)
+func (a *Aggregation) Story(projectID, storyID int) *Aggregation {
+	a.requests = append(a.requests, BuildStoryURL(projectID, storyID))
+	return a
+}
+
+// Stories adds the urls for the slice of story IDs.
+func (a *Aggregation) Stories(projectID int, storyIDs []int) *Aggregation {
+	for _, storyID := range storyIDs {
+		a.Story(projectID, storyID)
+	}
+	return a
+}
+
+// Adds the url for the comments to the aggregation data.
+func (a *Aggregation) CommentsOfStory(projectID, storyID int) {
+	a.requests = append(a.requests, buildCommentsURL(projectID, storyID))
+}
+
+// Comments adds the requests for getting the comments of the stories in storiesToGet.
+func (a *Aggregation) CommentsOfStories(projectID int, storyIDs []int) *Aggregation {
+	for _, storyID := range storyIDs {
+		a.CommentsOfStory(projectID, storyID)
+	}
+	return a
 }
 
 // Adds the url for the reviews to the aggregation data.
-func (a *Aggregation) queueReviewsByID(projectID, storyID int) {
-	u := fmt.Sprintf("/services/v5/projects/%d/stories/%d/reviews?fields=id,story_id,review_type,review_type_id,reviewer_id,status,created_at,updated_at,kind", projectID, storyID)
-	a.requests = append(a.requests, u)
+func (a *Aggregation) ReviewsOfStory(projectID, storyID int) *Aggregation {
+	a.requests = append(a.requests, buildReviewsURL(projectID, storyID))
+	return a
+}
+
+// Comments adds the requests for getting the comments of the stories in storiesToGet.
+func (a *Aggregation) ReviewsOfStories(projectID int, storyIDs []int) *Aggregation {
+	for _, storyID := range storyIDs {
+		a.ReviewsOfStory(projectID, storyID)
+	}
+	return a
+}
+
+func BuildStoryURL(projectID, storyID int) string {
+	return fmt.Sprintf("/services/v5/projects/%d/stories/%d", projectID, storyID)
+}
+
+func buildCommentsURL(projectID, storyID int) string {
+	return fmt.Sprintf("/services/v5/projects/%d/stories/%d/comments", projectID, storyID)
+}
+
+func buildReviewsURL(projectID, storyID int) string {
+	return fmt.Sprintf("/services/v5/projects/%d/stories/%d/reviews?fields=id,story_id,review_type,review_type_id,reviewer_id,status,created_at,updated_at,kind", projectID, storyID)
+}
+
+func maxPagesPagination(total int, perPage int) int {
+	pagesNumber := math.Ceil(float64(total) / float64(perPage))
+	return int(pagesNumber)
+}
+
+func paginate(reqs []string, currentPage, total int, perPage int) []string {
+	firstEntry := (currentPage - 1) * perPage
+	lastEntry := firstEntry + perPage
+
+	if lastEntry > total {
+		lastEntry = total
+	}
+
+	return reqs[firstEntry:lastEntry]
 }
 
 // Sends the request for the aggregation.
-func (service *AggregatorService) sendAggregationRequest(a *Aggregation) error {
-	req, err := service.client.NewRequest("POST", aggregatorURL, a.requests)
-	if err != nil {
-		return err
+func (a *Aggregation) Send() (*Aggregation, error) {
+	N := len(a.requests)
+	max := maxPagesPagination(N, perPage)
+	for currentPage := 1; currentPage <= max; currentPage++ {
+		currentReqs := paginate(a.requests, currentPage, N, perPage)
+
+		a.aggregatedResponse = make(map[string]interface{})
+
+		req, err := a.service.client.NewRequest("POST", aggregatorURL, currentReqs)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = a.service.client.Do(req, &a.aggregatedResponse)
+		if err != nil {
+			return nil, err
+		}
+
+		a.processAggregationMaps()
 	}
 
-	_, err = service.client.Do(req, &a.aggregatedResponse)
-	if err != nil {
-		return err
-	}
-	return nil
+	return a, nil
 }
 
 // Returns the story using StoryID from the aggregation.
