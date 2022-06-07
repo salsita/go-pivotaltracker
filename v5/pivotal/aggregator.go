@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"strings"
 )
 
 const aggregatorURL = "https://www.pivotaltracker.com/services/v5/aggregator"
@@ -33,98 +32,21 @@ type Aggregation struct {
 	// Storing the response json along with the urls.
 	aggregatedResponse map[string]interface{}
 
-	// Map for quickly accessing the stories using their IDs
-	aggregatedData map[int]*AggregatedStory
-
 	// The service of the aggregation
 	service *AggregatorService
-}
-
-// AggregatedStory contains the story, comment and review information.
-type AggregatedStory struct {
-	Story    *Story
-	Comments *[]Comment
-	Reviews  *[]Review
 }
 
 func (a *AggregatorService) GetBuilder() *Aggregation {
 	aggregation := Aggregation{
 		aggregatedResponse: make(map[string]interface{}),
-		aggregatedData:     make(map[int]*AggregatedStory),
-		service:            a,
+		// aggregatedData:     make(map[int]*AggregatedStory),
+		service: a,
 	}
 	return &aggregation
 }
 
 func newAggregatorService(client *Client) *AggregatorService {
 	return &AggregatorService{client}
-}
-
-func (a *Aggregation) maybeCreateAggregatedStory(StoryID int) *AggregatedStory {
-	story, ok := a.aggregatedData[StoryID]
-	if !ok {
-		a.aggregatedData[StoryID] = &AggregatedStory{
-			Comments: &[]Comment{},
-			Reviews:  &[]Review{},
-		}
-
-		return a.aggregatedData[StoryID]
-	}
-	return story
-}
-
-// Converts the JSON response from PT into the related structs(Story, Comment, Review).
-func (a *Aggregation) processAggregationMaps() (*Aggregation, error) {
-	// Creating the map with the story information.
-	for url, byteStory := range a.aggregatedResponse {
-		byteData, _ := json.Marshal(byteStory)
-
-		if strings.Contains(url, "reviews") {
-			var reviews []Review
-			err := json.Unmarshal(byteData, &reviews)
-			if err != nil {
-				return nil, err
-			}
-			if len(reviews) == 0 {
-				continue
-			}
-			// Accessing the reviews using the story ID
-			storyData := a.maybeCreateAggregatedStory(reviews[0].StoryID)
-			storyData.Reviews = &reviews
-			continue
-		}
-
-		if strings.Contains(url, "comments") {
-			var comments []Comment
-			err := json.Unmarshal(byteData, &comments)
-			if err != nil {
-				return nil, err
-			}
-			if len(comments) == 0 {
-				continue
-			}
-			// Accessing the reviews using the story ID
-			storyData := a.maybeCreateAggregatedStory(comments[0].StoryID)
-			storyData.Comments = &comments
-			continue
-		}
-
-		// Handling get story requests if it isn't comments/reviews.
-		var story Story
-		err := json.Unmarshal(byteData, &story)
-		if err != nil {
-			return nil, err
-		}
-		if story.ID == 0 {
-			continue
-		}
-		// Accessing the story with the story ID
-		storyData := a.maybeCreateAggregatedStory(story.ID)
-		storyData.Story = &story
-
-	}
-
-	return a, nil
 }
 
 // Adds the url for the story to the aggregation data.
@@ -215,35 +137,59 @@ func (a *Aggregation) Send() (*Aggregation, error) {
 			return nil, err
 		}
 
-		a.processAggregationMaps()
+		// a.processAggregationMaps()
 	}
 
 	return a, nil
 }
 
 // Returns the story using StoryID from the aggregation.
-func (a *Aggregation) GetStory(storyID int) (*Story, error) {
-	story, ok := a.aggregatedData[storyID]
+func (a *Aggregation) GetStory(projectID, storyID int) (*Story, error) {
+	u := BuildStoryURL(projectID, storyID)
+	response, ok := a.aggregatedResponse[u]
 	if !ok {
-		return nil, fmt.Errorf("Story %d doesn't exist.", storyID)
+		return nil, fmt.Errorf("Story %d doesn't exist for project %d.", storyID, projectID)
 	}
-	return story.Story, nil
+	byteData, _ := json.Marshal(response)
+
+	// Handling get story requests if it isn't comments/reviews.
+	var story Story
+	err := json.Unmarshal(byteData, &story)
+	if err != nil {
+		return nil, err
+	}
+	return &story, nil
 }
 
 // Returns the comments using story id from the aggregation.
-func (a *Aggregation) GetComments(storyID int) ([]Comment, error) {
-	story, ok := a.aggregatedData[storyID]
+func (a *Aggregation) GetComments(projectID, storyID int) ([]Comment, error) {
+	u := buildCommentsURL(projectID, storyID)
+	response, ok := a.aggregatedResponse[u]
 	if !ok {
-		return nil, fmt.Errorf("Story %d doesn't exist.", storyID)
+		return nil, fmt.Errorf("Story %d comments don't exist for project %d.", storyID, projectID)
 	}
-	return *story.Comments, nil
+	byteData, _ := json.Marshal(response)
+
+	var comments []Comment
+	err := json.Unmarshal(byteData, &comments)
+	if err != nil {
+		return nil, err
+	}
+	return comments, nil
 }
 
 // Returns the reviews using the story id from the aggregation.
-func (a *Aggregation) GetReviews(storyID int) ([]Review, error) {
-	story, ok := a.aggregatedData[storyID]
+func (a *Aggregation) GetReviews(projectID, storyID int) ([]Review, error) {
+	u := buildReviewsURL(projectID, storyID)
+	response, ok := a.aggregatedResponse[u]
 	if !ok {
-		return nil, fmt.Errorf("Story %d doesn't exist.", storyID)
+		return nil, fmt.Errorf("Story %d reviews don't exist for project %d.", storyID, projectID)
 	}
-	return *story.Reviews, nil
+	byteData, _ := json.Marshal(response)
+	var reviews []Review
+	err := json.Unmarshal(byteData, &reviews)
+	if err != nil {
+		return nil, err
+	}
+	return reviews, nil
 }
