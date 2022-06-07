@@ -39,8 +39,7 @@ type Aggregation struct {
 func (a *AggregatorService) GetBuilder() *Aggregation {
 	aggregation := Aggregation{
 		aggregatedResponse: make(map[string]interface{}),
-		// aggregatedData:     make(map[int]*AggregatedStory),
-		service: a,
+		service:            a,
 	}
 	return &aggregation
 }
@@ -136,8 +135,6 @@ func (a *Aggregation) Send() (*Aggregation, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		// a.processAggregationMaps()
 	}
 
 	return a, nil
