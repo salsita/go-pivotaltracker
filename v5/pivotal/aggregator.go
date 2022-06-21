@@ -54,6 +54,11 @@ func (a *Aggregation) Story(projectID, storyID int) *Aggregation {
 	return a
 }
 
+func (a *Aggregation) StoryUsingStoryID(storyID int) *Aggregation {
+	a.requests = append(a.requests, BuildStoryURLOnlyUsingStoryID(storyID))
+	return a
+}
+
 // Stories adds the urls for the slice of story IDs.
 func (a *Aggregation) Stories(projectID int, storyIDs []int) *Aggregation {
 	for _, storyID := range storyIDs {
@@ -87,6 +92,10 @@ func (a *Aggregation) ReviewsOfStories(projectID int, storyIDs []int) *Aggregati
 		a.ReviewsOfStory(projectID, storyID)
 	}
 	return a
+}
+
+func BuildStoryURLOnlyUsingStoryID(storyID int) string {
+	return fmt.Sprintf("/services/v5/stories/%d", storyID)
 }
 
 func BuildStoryURL(projectID, storyID int) string {
@@ -138,6 +147,24 @@ func (a *Aggregation) Send() (*Aggregation, error) {
 	}
 
 	return a, nil
+}
+
+// Returns the story using StoryID from the aggregation.
+func (a *Aggregation) GetStoryOnlyUsingStoryID(storyID int) (*Story, error) {
+	u := BuildStoryURLOnlyUsingStoryID(storyID)
+	response, ok := a.aggregatedResponse[u]
+	if !ok {
+		return nil, fmt.Errorf("Story %d doesn't exist.", storyID)
+	}
+	byteData, _ := json.Marshal(response)
+
+	// Handling get story requests if it isn't comments/reviews.
+	var story Story
+	err := json.Unmarshal(byteData, &story)
+	if err != nil {
+		return nil, err
+	}
+	return &story, nil
 }
 
 // Returns the story using StoryID from the aggregation.
