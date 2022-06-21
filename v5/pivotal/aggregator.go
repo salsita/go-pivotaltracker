@@ -133,16 +133,21 @@ func (a *Aggregation) Send() (*Aggregation, error) {
 	for currentPage := 1; currentPage <= max; currentPage++ {
 		currentReqs := paginate(a.requests, currentPage, N, perPage)
 
-		a.aggregatedResponse = make(map[string]interface{})
+		aggregatedResponse := make(map[string]interface{})
 
 		req, err := a.service.client.NewRequest("POST", aggregatorURL, currentReqs)
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = a.service.client.Do(req, &a.aggregatedResponse)
+		_, err = a.service.client.Do(req, &aggregatedResponse)
 		if err != nil {
 			return nil, err
+		}
+
+		// Appending the response body into the current aggregation for getters.
+		for url, response := range aggregatedResponse {
+			a.aggregatedResponse[url] = response
 		}
 	}
 
