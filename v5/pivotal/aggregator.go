@@ -8,23 +8,15 @@ import (
 
 const aggregatorURL = "https://www.pivotaltracker.com/services/v5/aggregator"
 
-// PT doesn't allow more than around 15 urls in one aggregation request.
-// However, this was found by experimenting. There was no official
-// rate-limiting data in their docs.
-const perPage = 15 // GET requests per aggregation requests.
+const requestsPerAggregation = 15 // Number of requests per aggregation.
 
 // AggregatorService is used to wrap the client.
 type AggregatorService struct {
 	client *Client
 }
 
-type AggregationRequest struct {
-	url       string
-	projectID int
-	storyID   int
-}
-
-// Aggregation object stores the state of the aggregation.
+// Aggregation is the data object for an aggregation.
+// It is used for storing the urls of the requests and the response.
 type Aggregation struct {
 	// Requests are the GET requests that are used by the aggregator.
 	requests []string
@@ -36,6 +28,7 @@ type Aggregation struct {
 	service *AggregatorService
 }
 
+// GetBuilder returns a builder for building an aggregation.
 func (a *AggregatorService) GetBuilder() *Aggregation {
 	aggregation := Aggregation{
 		aggregatedResponse: make(map[string]interface{}),
@@ -48,18 +41,19 @@ func newAggregatorService(client *Client) *AggregatorService {
 	return &AggregatorService{client}
 }
 
-// Adds the url for the story to the aggregation data.
+// Story adds a story request to the aggregation.
 func (a *Aggregation) Story(projectID, storyID int) *Aggregation {
-	a.requests = append(a.requests, BuildStoryURL(projectID, storyID))
+	a.requests = append(a.requests, buildStoryURL(projectID, storyID))
 	return a
 }
 
+// StoryUsingStoryID adds a story request using only using the story ID.
 func (a *Aggregation) StoryUsingStoryID(storyID int) *Aggregation {
-	a.requests = append(a.requests, BuildStoryURLOnlyUsingStoryID(storyID))
+	a.requests = append(a.requests, buildStoryURLOnlyUsingStoryID(storyID))
 	return a
 }
 
-// Stories adds the urls for the slice of story IDs.
+// Stories adds a list of story requests to an aggregation.
 func (a *Aggregation) Stories(projectID int, storyIDs []int) *Aggregation {
 	for _, storyID := range storyIDs {
 		a.Story(projectID, storyID)
@@ -67,12 +61,12 @@ func (a *Aggregation) Stories(projectID int, storyIDs []int) *Aggregation {
 	return a
 }
 
-// Adds the url for the comments to the aggregation data.
+// CommentsOfStory adds a request for getting the comments of a story.
 func (a *Aggregation) CommentsOfStory(projectID, storyID int) {
 	a.requests = append(a.requests, buildCommentsURL(projectID, storyID))
 }
 
-// Comments adds the requests for getting the comments of the stories in storiesToGet.
+// CommentsOfStories adds multiple requests for getting the comments of a list of stories.
 func (a *Aggregation) CommentsOfStories(projectID int, storyIDs []int) *Aggregation {
 	for _, storyID := range storyIDs {
 		a.CommentsOfStory(projectID, storyID)
@@ -80,13 +74,13 @@ func (a *Aggregation) CommentsOfStories(projectID int, storyIDs []int) *Aggregat
 	return a
 }
 
-// Adds the url for the reviews to the aggregation data.
+// ReviewsOfStory adds multiple requests for getting the reviews of a story.
 func (a *Aggregation) ReviewsOfStory(projectID, storyID int) *Aggregation {
 	a.requests = append(a.requests, buildReviewsURL(projectID, storyID))
 	return a
 }
 
-// Comments adds the requests for getting the comments of the stories in storiesToGet.
+// ReviewsOfStories adds multiple requests for getting the reviews of multiple stories.
 func (a *Aggregation) ReviewsOfStories(projectID int, storyIDs []int) *Aggregation {
 	for _, storyID := range storyIDs {
 		a.ReviewsOfStory(projectID, storyID)
@@ -94,11 +88,11 @@ func (a *Aggregation) ReviewsOfStories(projectID int, storyIDs []int) *Aggregati
 	return a
 }
 
-func BuildStoryURLOnlyUsingStoryID(storyID int) string {
+func buildStoryURLOnlyUsingStoryID(storyID int) string {
 	return fmt.Sprintf("/services/v5/stories/%d", storyID)
 }
 
-func BuildStoryURL(projectID, storyID int) string {
+func buildStoryURL(projectID, storyID int) string {
 	return fmt.Sprintf("/services/v5/projects/%d/stories/%d", projectID, storyID)
 }
 
@@ -126,12 +120,12 @@ func paginate(reqs []string, currentPage, total int, perPage int) []string {
 	return reqs[firstEntry:lastEntry]
 }
 
-// Sends the request for the aggregation.
+// Send completes the aggregation and sends it to Pivotal Tracker.
 func (a *Aggregation) Send() (*Aggregation, error) {
 	N := len(a.requests)
-	max := maxPagesPagination(N, perPage)
+	max := maxPagesPagination(N, requestsPerAggregation)
 	for currentPage := 1; currentPage <= max; currentPage++ {
-		currentReqs := paginate(a.requests, currentPage, N, perPage)
+		currentReqs := paginate(a.requests, currentPage, N, requestsPerAggregation)
 
 		aggregatedResponse := make(map[string]interface{})
 
@@ -154,9 +148,9 @@ func (a *Aggregation) Send() (*Aggregation, error) {
 	return a, nil
 }
 
-// Returns the story using StoryID from the aggregation.
+// GetStoryOnlyUsingStoryID returns the story using only the story ID.
 func (a *Aggregation) GetStoryOnlyUsingStoryID(storyID int) (*Story, error) {
-	u := BuildStoryURLOnlyUsingStoryID(storyID)
+	u := buildStoryURLOnlyUsingStoryID(storyID)
 	response, ok := a.aggregatedResponse[u]
 	if !ok {
 		return nil, fmt.Errorf("Story %d doesn't exist.", storyID)
@@ -172,9 +166,9 @@ func (a *Aggregation) GetStoryOnlyUsingStoryID(storyID int) (*Story, error) {
 	return &story, nil
 }
 
-// Returns the story using StoryID from the aggregation.
+// GetStory returns the story using both the project ID and the story ID.
 func (a *Aggregation) GetStory(projectID, storyID int) (*Story, error) {
-	u := BuildStoryURL(projectID, storyID)
+	u := buildStoryURL(projectID, storyID)
 	response, ok := a.aggregatedResponse[u]
 	if !ok {
 		return nil, fmt.Errorf("Story %d doesn't exist for project %d.", storyID, projectID)
@@ -190,7 +184,7 @@ func (a *Aggregation) GetStory(projectID, storyID int) (*Story, error) {
 	return &story, nil
 }
 
-// Returns the comments using story id from the aggregation.
+// GetComments returns the comments of a story.
 func (a *Aggregation) GetComments(projectID, storyID int) ([]Comment, error) {
 	u := buildCommentsURL(projectID, storyID)
 	response, ok := a.aggregatedResponse[u]
@@ -207,7 +201,7 @@ func (a *Aggregation) GetComments(projectID, storyID int) ([]Comment, error) {
 	return comments, nil
 }
 
-// Returns the reviews using the story id from the aggregation.
+// GetReviews returns the reviews of a story.
 func (a *Aggregation) GetReviews(projectID, storyID int) ([]Review, error) {
 	u := buildReviewsURL(projectID, storyID)
 	response, ok := a.aggregatedResponse[u]
