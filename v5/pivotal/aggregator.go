@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"net/http"
 )
 
 const aggregatorURL = "https://www.pivotaltracker.com/services/v5/aggregator"
-
-const requestsPerAggregation = 15 // Number of requests per aggregation.
 
 // AggregatorService is used to wrap the client.
 type AggregatorService struct {
@@ -18,7 +17,7 @@ type AggregatorService struct {
 // Aggregation is the data object for an aggregation.
 // It is used for storing the urls of the requests and the response.
 type Aggregation struct {
-	// Requests are the GET requests that are used by the aggregator.
+	// Requests are the GET requests that are bundled by the aggregator.
 	requests []string
 
 	// Storing the response json along with the urls.
@@ -26,15 +25,25 @@ type Aggregation struct {
 
 	// The service of the aggregation
 	service *AggregatorService
+
+	// The amount of requests that an aggregation bundle will contain.
+	requestsPerAggregation int
 }
 
 // GetBuilder returns a builder for building an aggregation.
 func (a *AggregatorService) GetBuilder() *Aggregation {
 	aggregation := Aggregation{
-		aggregatedResponse: make(map[string]interface{}),
-		service:            a,
+		aggregatedResponse:     make(map[string]interface{}),
+		service:                a,
+		requestsPerAggregation: 15, // The default value is 15.
 	}
 	return &aggregation
+}
+
+// SetRequestsPerAggregation sets the number of that each aggregation
+// bundle will contain.
+func (a *Aggregation) SetRequestsPerAggregation(amount int) {
+	a.requestsPerAggregation = amount
 }
 
 func newAggregatorService(client *Client) *AggregatorService {
@@ -47,9 +56,9 @@ func (a *Aggregation) Story(projectID, storyID int) *Aggregation {
 	return a
 }
 
-// StoryUsingStoryID adds a story request using only using the story ID.
-func (a *Aggregation) StoryUsingStoryID(storyID int) *Aggregation {
-	a.requests = append(a.requests, buildStoryURLOnlyUsingStoryID(storyID))
+// StoryByID adds a story request using only the story ID.
+func (a *Aggregation) StoryByID(storyID int) *Aggregation {
+	a.requests = append(a.requests, buildStoryURLByID(storyID))
 	return a
 }
 
@@ -88,7 +97,7 @@ func (a *Aggregation) ReviewsOfStories(projectID int, storyIDs []int) *Aggregati
 	return a
 }
 
-func buildStoryURLOnlyUsingStoryID(storyID int) string {
+func buildStoryURLByID(storyID int) string {
 	return fmt.Sprintf("/services/v5/stories/%d", storyID)
 }
 
@@ -109,57 +118,89 @@ func maxPagesPagination(total int, perPage int) int {
 	return int(pagesNumber)
 }
 
-func paginate(reqs []string, currentPage, total int, perPage int) []string {
-	firstEntry := (currentPage - 1) * perPage
-	lastEntry := firstEntry + perPage
-
-	if lastEntry > total {
-		lastEntry = total
+func getLastIndex(reqs []string, perPage int) int {
+	lastIndex := perPage
+	if lastIndex > len(reqs) {
+		lastIndex = len(reqs)
 	}
-
-	return reqs[firstEntry:lastEntry]
+	return lastIndex
 }
 
-// Send completes the aggregation and sends it to Pivotal Tracker.
-func (a *Aggregation) Send() (*Aggregation, error) {
-	N := len(a.requests)
-	max := maxPagesPagination(N, requestsPerAggregation)
-	for currentPage := 1; currentPage <= max; currentPage++ {
-		currentReqs := paginate(a.requests, currentPage, N, requestsPerAggregation)
-
-		aggregatedResponse := make(map[string]interface{})
-
-		req, err := a.service.client.NewRequest("POST", aggregatorURL, currentReqs)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = a.service.client.Do(req, &aggregatedResponse)
-		if err != nil {
-			return nil, err
-		}
-
-		// Appending the response body into the current aggregation for getters.
-		for url, response := range aggregatedResponse {
-			a.aggregatedResponse[url] = response
-		}
+// Send sends the next bulk of aggregation to Pivotal Tracker.
+// It returns true, if there are more bulks to be sent.
+func (a *Aggregation) Send() (*Aggregation, *http.Response, bool, error) {
+	lastIndex := getLastIndex(a.requests, a.requestsPerAggregation)
+	if lastIndex == 0 {
+		return a, nil, false, nil
 	}
 
-	return a, nil
+	// Getting the current bulk to be sent
+	currentBulk := a.requests[0:lastIndex]
+
+	// Popping the current bulk from the requests.
+	a.requests = a.requests[lastIndex:]
+
+	aggregatedResponse := make(map[string]interface{})
+
+	req, err := a.service.client.NewRequest("POST", aggregatorURL, currentBulk)
+	if err != nil {
+		return nil, nil, false, err
+	}
+
+	response, err := a.service.client.Do(req, &aggregatedResponse)
+	if err != nil {
+		return nil, nil, false, err
+	}
+
+	// Appending the response body into the current aggregation for getters.
+	for url, response := range aggregatedResponse {
+		a.aggregatedResponse[url] = response
+	}
+
+	// Return true if there is more left
+	if len(a.requests) > 0 {
+		return a, response, true, nil
+	}
+	return a, response, false, nil
 }
 
-// GetStoryOnlyUsingStoryID returns the story using only the story ID.
-func (a *Aggregation) GetStoryOnlyUsingStoryID(storyID int) (*Story, error) {
-	u := buildStoryURLOnlyUsingStoryID(storyID)
+// Send sends all the bulks to PivotalTracker.
+func (a *Aggregation) SendAll() (*Aggregation, []*http.Response, error) {
+	responses := []*http.Response{}
+	for {
+		a, response, hasMore, err := a.Send()
+
+		if err != nil {
+			return a, nil, err
+		}
+
+		responses = append(responses, response)
+
+		if !hasMore {
+			return a, responses, nil
+		}
+	}
+}
+
+func mapTo(from interface{}, to interface{}) error {
+	b, err := json.Marshal(from)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(b, to)
+}
+
+// GetStoryByID returns the story using only the story ID.
+// Please use GetStory, if you used the project ID when adding the request.
+func (a *Aggregation) GetStoryByID(storyID int) (*Story, error) {
+	u := buildStoryURLByID(storyID)
 	response, ok := a.aggregatedResponse[u]
 	if !ok {
 		return nil, fmt.Errorf("Story %d doesn't exist.", storyID)
 	}
-	byteData, _ := json.Marshal(response)
 
-	// Handling get story requests if it isn't comments/reviews.
 	var story Story
-	err := json.Unmarshal(byteData, &story)
+	err := mapTo(response, &story)
 	if err != nil {
 		return nil, err
 	}
@@ -167,17 +208,16 @@ func (a *Aggregation) GetStoryOnlyUsingStoryID(storyID int) (*Story, error) {
 }
 
 // GetStory returns the story using both the project ID and the story ID.
+// Please use GetStoryByID, if you used the story ID only when adding the request.
 func (a *Aggregation) GetStory(projectID, storyID int) (*Story, error) {
 	u := buildStoryURL(projectID, storyID)
 	response, ok := a.aggregatedResponse[u]
 	if !ok {
 		return nil, fmt.Errorf("Story %d doesn't exist for project %d.", storyID, projectID)
 	}
-	byteData, _ := json.Marshal(response)
 
-	// Handling get story requests if it isn't comments/reviews.
 	var story Story
-	err := json.Unmarshal(byteData, &story)
+	err := mapTo(response, &story)
 	if err != nil {
 		return nil, err
 	}
@@ -191,10 +231,8 @@ func (a *Aggregation) GetComments(projectID, storyID int) ([]Comment, error) {
 	if !ok {
 		return nil, fmt.Errorf("Story %d comments don't exist for project %d.", storyID, projectID)
 	}
-	byteData, _ := json.Marshal(response)
-
 	var comments []Comment
-	err := json.Unmarshal(byteData, &comments)
+	err := mapTo(response, &comments)
 	if err != nil {
 		return nil, err
 	}
@@ -208,9 +246,8 @@ func (a *Aggregation) GetReviews(projectID, storyID int) ([]Review, error) {
 	if !ok {
 		return nil, fmt.Errorf("Story %d reviews don't exist for project %d.", storyID, projectID)
 	}
-	byteData, _ := json.Marshal(response)
 	var reviews []Review
-	err := json.Unmarshal(byteData, &reviews)
+	err := mapTo(response, &reviews)
 	if err != nil {
 		return nil, err
 	}
