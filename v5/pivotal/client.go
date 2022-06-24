@@ -57,6 +57,9 @@ type Client struct {
 
 	// Epic Service
 	Epic *EpicService
+
+	// Aggregator Service
+	Aggregator *AggregatorService
 }
 
 // NewClient takes a Pivotal Tracker API Token (created from the project settings) and
@@ -76,6 +79,7 @@ func NewClient(apiToken string) *Client {
 	client.Iterations = newIterationService(client)
 	client.Activity = newActivitiesService(client)
 	client.Epic = newEpicService(client)
+	client.Aggregator = newAggregatorService(client)
 	return client
 }
 
