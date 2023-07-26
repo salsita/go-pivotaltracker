@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -59,6 +60,7 @@ type Story struct {
 	AcceptedAt    *time.Time `json:"accepted_at,omitempty"`
 	Deadline      *time.Time `json:"deadline,omitempty"`
 	RequestedByID int        `json:"requested_by_id,omitempty"`
+	RequestedBy   Person     `json:"requested_by,omitempty"`
 	OwnerIDs      []int      `json:"owner_ids,omitempty"`
 	LabelIDs      []int      `json:"label_ids,omitempty"`
 	Labels        []*Label   `json:"labels,omitempty"`
@@ -198,7 +200,7 @@ func newStoryService(client *Client) *StoryService {
 // is not always sorted when using a filter, this approach is required to get
 // the right data. Not sure whether this is a bug or a feature.
 func (service *StoryService) List(projectID int, filter string) ([]*Story, error) {
-	reqFunc := newStoriesRequestFunc(service.client, projectID, filter)
+	reqFunc := newStoriesRequestFunc(service.client, projectID, filter, nil)
 	cursor, err := newCursor(service.client, reqFunc, 0)
 	if err != nil {
 		return nil, err
@@ -211,15 +213,64 @@ func (service *StoryService) List(projectID int, filter string) ([]*Story, error
 	return stories, nil
 }
 
-func newStoriesRequestFunc(client *Client, projectID int, filter string) func() *http.Request {
+func newStoriesRequestFunc(client *Client, projectID int, filter string, fields []string) func() *http.Request {
 	return func() *http.Request {
 		u := fmt.Sprintf("projects/%v/stories", projectID)
 		if filter != "" {
 			u += "?filter=" + url.QueryEscape(filter)
+			if len(fields) == 0 {
+				fields = DefaultFields
+			}
+			u += "&fields=" + url.QueryEscape(fieldsToQuery(fields))
 		}
 		req, _ := client.NewRequest("GET", u, nil)
 		return req
 	}
+}
+
+var DefaultFields = []string{
+	"id",
+	"project_id",
+	"name",
+	"description",
+	"story_type",
+	"current_state",
+	"estimate",
+	"accepted_at",
+	"deadline",
+	"requested_by_id",
+	"owner_ids",
+	"task_ids",
+	"follower_ids",
+	"created_at",
+	"updated_at",
+	"url",
+	"kind",
+}
+
+// function returns the fields in a query string format.
+func fieldsToQuery(fields []string) string {
+	if len(fields) == 0 {
+		fields = DefaultFields
+	}
+	return strings.Join(fields, ",")
+}
+
+// ListOnlyFields returns all the fields of the stories matching the filter given.
+// Example: fields = []string{"id", "name", "description"}
+// Having nil or empty fields will return all the fields.
+func (service *StoryService) ListWithFields(projectID int, filter string, fields []string) ([]*Story, error) {
+	reqFunc := newStoriesRequestFunc(service.client, projectID, filter, fields)
+	cursor, err := newCursor(service.client, reqFunc, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	var stories []*Story
+	if err := cursor.all(&stories); err != nil {
+		return nil, err
+	}
+	return stories, nil
 }
 
 // StoryCursor is used to implement the iterator pattern.
@@ -250,7 +301,7 @@ func (c *StoryCursor) Next() (s *Story, err error) {
 // Iterate returns a cursor that can be used to iterate over the stories specified
 // by the filter. More stories are fetched on demand as needed.
 func (service *StoryService) Iterate(projectID int, filter string) (c *StoryCursor, err error) {
-	reqFunc := newStoriesRequestFunc(service.client, projectID, filter)
+	reqFunc := newStoriesRequestFunc(service.client, projectID, filter, nil)
 	cursor, err := newCursor(service.client, reqFunc, PageLimit)
 	if err != nil {
 		return nil, err
