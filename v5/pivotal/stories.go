@@ -218,10 +218,9 @@ func newStoriesRequestFunc(client *Client, projectID int, filter string, fields 
 		u := fmt.Sprintf("projects/%v/stories", projectID)
 		if filter != "" {
 			u += "?filter=" + url.QueryEscape(filter)
-			if len(fields) == 0 {
-				fields = DefaultFields
+			if len(fields) != 0 {
+				u += "&fields=" + url.QueryEscape(fieldsToQuery(fields))
 			}
-			u += "&fields=" + url.QueryEscape(fieldsToQuery(fields))
 		}
 		req, _ := client.NewRequest("GET", u, nil)
 		return req
