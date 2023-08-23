@@ -79,18 +79,19 @@ type Story struct {
 
 // StoryRequest is a simplified Story object for use in Create/Update/Delete operations.
 type StoryRequest struct {
-	Name        string    `json:"name,omitempty"`
-	Description string    `json:"description,omitempty"`
-	Type        string    `json:"story_type,omitempty"`
-	State       string    `json:"current_state,omitempty"`
-	Estimate    *float64  `json:"estimate,omitempty"`
-	OwnerIDs    *[]int    `json:"owner_ids,omitempty"`
-	LabelIDs    *[]int    `json:"label_ids,omitempty"`
-	Labels      *[]*Label `json:"labels,omitempty"`
-	TaskIDs     *[]int    `json:"task_ids,omitempty"`
-	Tasks       *[]int    `json:"tasks,omitempty"`
-	FollowerIDs *[]int    `json:"follower_ids,omitempty"`
-	CommentIDs  *[]int    `json:"comment_ids,omitempty"`
+	Name          string    `json:"name,omitempty"`
+	Description   string    `json:"description,omitempty"`
+	Type          string    `json:"story_type,omitempty"`
+	State         string    `json:"current_state,omitempty"`
+	Estimate      *float64  `json:"estimate,omitempty"`
+	RequestedByID int       `json:"requested_by_id,omitempty"`
+	OwnerIDs      *[]int    `json:"owner_ids,omitempty"`
+	LabelIDs      *[]int    `json:"label_ids,omitempty"`
+	Labels        *[]*Label `json:"labels,omitempty"`
+	TaskIDs       *[]int    `json:"task_ids,omitempty"`
+	Tasks         *[]int    `json:"tasks,omitempty"`
+	FollowerIDs   *[]int    `json:"follower_ids,omitempty"`
+	CommentIDs    *[]int    `json:"comment_ids,omitempty"`
 }
 
 // Label is a child object of a Story. This may need to be broken out into a LabelService
