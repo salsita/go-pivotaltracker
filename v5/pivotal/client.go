@@ -37,6 +37,9 @@ type Client struct {
 	// User-Agent header to use when connecting to the Pivotal Tracker API.
 	userAgent string
 
+	// Accounts service
+	Accounts *AccountsService
+
 	// Me service
 	Me *MeService
 
@@ -57,6 +60,9 @@ type Client struct {
 
 	// Epic Service
 	Epic *EpicService
+
+	// Aggregator Service
+	Aggregator *AggregatorService
 }
 
 // NewClient takes a Pivotal Tracker API Token (created from the project settings) and
@@ -69,6 +75,7 @@ func NewClient(apiToken string) *Client {
 		baseURL:   baseURL,
 		userAgent: defaultUserAgent,
 	}
+	client.Accounts = newAccountsService(client)
 	client.Me = newMeService(client)
 	client.Projects = newProjectService(client)
 	client.Stories = newStoryService(client)
@@ -76,6 +83,7 @@ func NewClient(apiToken string) *Client {
 	client.Iterations = newIterationService(client)
 	client.Activity = newActivitiesService(client)
 	client.Epic = newEpicService(client)
+	client.Aggregator = newAggregatorService(client)
 	return client
 }
 
@@ -92,6 +100,11 @@ func (c *Client) SetBaseURL(baseURL string) error {
 
 	c.baseURL = u
 	return nil
+}
+
+// SetHTTPClient overrides the default HTTP Client, http.DefaultClient.
+func (c *Client) SetHTTPClient(client *http.Client) {
+	c.client = client
 }
 
 // SetUserAgent overrides the defaultUserAgent in the default Client implementation.

@@ -9,21 +9,40 @@ import (
 	"time"
 )
 
+// MeProject represents the fields of the projects returned by the MeService.
+// These are the only fields returned by the MeService unlike
+// the Project service.
+type MeProject struct {
+	Kind         string     `json:"kind"`
+	ID           int        `json:"id"`
+	ProjectID    int        `json:"project_id"`
+	ProjectName  string     `json:"project_name"`
+	ProjectColor string     `json:"project_color"`
+	Favorite     bool       `json:"favorite"`
+	Role         string     `json:"owner"`
+	LastViewedAt *time.Time `json:"last_viewed_at"`
+}
+
 // Me is the primary data object for the MeService.
 type Me struct {
-	ID                         int        `json:"id"`
-	Name                       string     `json:"name"`
-	Initials                   string     `json:"initials"`
-	Username                   string     `json:"username"`
-	TimeZone                   *TimeZone  `json:"time_zone"`
-	APIToken                   string     `json:"api_token"`
-	HasGoogleIdentity          bool       `json:"has_google_identity"`
-	ProjectIDs                 *[]int     `json:"project_ids"`
-	WorkspaceIDs               *[]int     `json:"workspace_ids"`
-	Email                      string     `json:"email"`
-	ReceivedInAppNotifications bool       `json:"receives_in_app_notifications"`
-	CreatedAt                  *time.Time `json:"created_at"`
-	UpdatedAt                  *time.Time `json:"updated_at"`
+	ID                int       `json:"id"`
+	Name              string    `json:"name"`
+	Initials          string    `json:"initials"`
+	Username          string    `json:"username"`
+	TimeZone          *TimeZone `json:"time_zone"`
+	APIToken          string    `json:"api_token"`
+	HasGoogleIdentity bool      `json:"has_google_identity"`
+
+	// TODO: The ProjectIDs field needs to be requested explicitly using
+	// the fields query parameter. It is never populated unlike Projects,
+	// which is populated by default.
+	ProjectIDs                 *[]int       `json:"project_ids"`
+	Projects                   *[]MeProject `json:"projects"`
+	WorkspaceIDs               *[]int       `json:"workspace_ids"`
+	Email                      string       `json:"email"`
+	ReceivedInAppNotifications bool         `json:"receives_in_app_notifications"`
+	CreatedAt                  *time.Time   `json:"created_at"`
+	UpdatedAt                  *time.Time   `json:"updated_at"`
 }
 
 // MeService wraps the client context for interacting with the Me logic.
