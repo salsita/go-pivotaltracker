@@ -87,6 +87,7 @@ type StoryRequest struct {
 	RequestedByID int       `json:"requested_by_id,omitempty"`
 	OwnerIDs      *[]int    `json:"owner_ids,omitempty"`
 	LabelIDs      *[]int    `json:"label_ids,omitempty"`
+	BeforeID      *int      `json:"before_id,omitempty"`
 	Labels        *[]*Label `json:"labels,omitempty"`
 	TaskIDs       *[]int    `json:"task_ids,omitempty"`
 	Tasks         *[]int    `json:"tasks,omitempty"`
